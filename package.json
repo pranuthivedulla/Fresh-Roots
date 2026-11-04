@@ -1,0 +1,17 @@
+{
+  "name": "freshroots-demand-planning",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Freshroots demand planning: flagged draft lists for a human reviewer. Recommends only; never orders.",
+  "type": "module",
+  "engines": { "node": ">=22.6" },
+  "scripts": {
+    "spike1": "node --experimental-strip-types scripts/spike1.ts",
+    "spike2": "node --experimental-strip-types scripts/spike2.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "@types/node": "22.9.0"
+  }
+}

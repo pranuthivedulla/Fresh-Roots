@@ -1,0 +1,27 @@
+# secrets — must never be committed
+.env
+.env.local
+.env.*.local
+.vercel
+
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# build output
+.next/
+out/
+build/
+dist/
+next-env.d.ts
+
+# test and coverage
+coverage/
+*.tsbuildinfo
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
