@@ -8,6 +8,7 @@
   "scripts": {
     "spike1": "node --experimental-strip-types scripts/spike1.ts",
     "spike2": "node --experimental-strip-types scripts/spike2.ts",
+    "fixtures": "node --experimental-strip-types tests/make-fixtures.ts",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

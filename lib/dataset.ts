@@ -89,16 +89,16 @@ export function readDataset(files: SourceFiles, names: FileNames): ReadResult {
   }
   if (problems.length > 0) return { ok: false, problems };
 
-  const skus = readSkus(tables.skuMaster, names.skuMaster, problems);
+  // Every SKU id that appears in the master, valid row or not. A SKU rejected
+  // for one bad cell must not then make all 16 of its sales rows look like
+  // rows for an unknown SKU: one bad cell should report as one problem.
+  const idsInMaster = new Set<string>();
+
+  const skus = readSkus(tables.skuMaster, names.skuMaster, problems, idsInMaster);
   const suppliers = readSuppliers(tables.suppliers, names.suppliers, problems);
   const calendar = readCalendar(tables.calendar, names.calendar, problems);
   const stock = readStock(tables.stock, names.stock, problems);
-  const sales = readSales(
-    tables.weeklySales,
-    names.weeklySales,
-    problems,
-    new Set(skus.map((s) => s.skuId)),
-  );
+  const sales = readSales(tables.weeklySales, names.weeklySales, problems, idsInMaster);
   if (problems.length > 0) return { ok: false, problems };
 
   const asOfDate = singleAsOfDate(stock, names.stock, problems);
@@ -128,7 +128,12 @@ export function readDataset(files: SourceFiles, names: FileNames): ReadResult {
   return { ok: true, dataset: { skus, suppliers, sales, stock, calendar, asOfDate }, warnings };
 }
 
-function readSkus(table: CsvTable, file: string, problems: DataProblem[]): Sku[] {
+function readSkus(
+  table: CsvTable,
+  file: string,
+  problems: DataProblem[],
+  idsInMaster: Set<string>,
+): Sku[] {
   const out: Sku[] = [];
   const seen = new Set<string>();
   table.rows.forEach((row, i) => {
@@ -138,6 +143,7 @@ function readSkus(table: CsvTable, file: string, problems: DataProblem[]): Sku[]
       problems.push({ file, line, column: "SKU_ID", message: "blank SKU_ID" });
       return;
     }
+    idsInMaster.add(skuId);
     if (seen.has(skuId)) {
       problems.push({ file, line, column: "SKU_ID", message: `${skuId} appears twice` });
       return;
