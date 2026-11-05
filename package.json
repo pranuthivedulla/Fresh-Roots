@@ -4,15 +4,23 @@
   "version": "0.1.0",
   "description": "Freshroots demand planning: flagged draft lists for a human reviewer. Recommends only; never orders.",
   "type": "module",
-  "engines": { "node": ">=22.6" },
+  "engines": {
+    "node": ">=22.6"
+  },
   "scripts": {
     "spike1": "node --experimental-strip-types scripts/spike1.ts",
     "spike2": "node --experimental-strip-types scripts/spike2.ts",
     "fixtures": "node --experimental-strip-types tests/make-fixtures.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "migrate": "node --env-file=.env --experimental-strip-types scripts/migrate.ts",
+    "spike3": "node --env-file=.env --experimental-strip-types scripts/spike3.ts"
   },
   "devDependencies": {
-    "typescript": "5.6.3",
-    "@types/node": "22.9.0"
+    "@types/node": "22.9.0",
+    "@types/pg": "^8.23.1",
+    "typescript": "5.6.3"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
   }
 }
