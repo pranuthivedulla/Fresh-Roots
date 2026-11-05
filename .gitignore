@@ -25,3 +25,9 @@ coverage/
 Thumbs.db
 *.swp
 .idea/
+
+
+# vercel link adds these; .env.example must stay tracked
+.vercel
+.env.local
+!.env.example
