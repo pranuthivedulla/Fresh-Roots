@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Plain and readable on a laptop. No decoration.
+   Flag colours are the only colour that carries meaning. */
+@theme {
+  --color-stockout: #b42318;
+  --color-overstock: #b54708;
+  --color-inrange: #067647;
+  --color-attention: #b54708;
+}
+
+body {
+  background: #fbfbfa;
+  color: #1a1a1a;
+}

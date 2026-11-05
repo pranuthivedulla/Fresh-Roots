@@ -5,9 +5,12 @@
   "description": "Freshroots demand planning: flagged draft lists for a human reviewer. Recommends only; never orders.",
   "type": "module",
   "engines": {
-    "node": ">=22.6"
+    "node": "22.x"
   },
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
     "spike1": "node --experimental-strip-types scripts/spike1.ts",
     "spike2": "node --experimental-strip-types scripts/spike2.ts",
     "fixtures": "node --experimental-strip-types tests/make-fixtures.ts",
@@ -16,11 +19,18 @@
     "spike3": "node --env-file=.env --experimental-strip-types scripts/spike3.ts"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "22.9.0",
     "@types/pg": "^8.23.1",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "tailwindcss": "^4.1.11",
     "typescript": "5.6.3"
   },
   "dependencies": {
-    "pg": "^8.23.1"
+    "next": "^15.5.4",
+    "pg": "^8.23.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   }
 }
