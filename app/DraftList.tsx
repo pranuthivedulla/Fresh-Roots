@@ -1,5 +1,7 @@
+import type { SavedDecision } from "../lib/decision-reasons.ts";
 import type { SavedRecommendation } from "../lib/runs.ts";
 import { round } from "../lib/rules.ts";
+import { ReviewControls } from "./ReviewRow.tsx";
 
 /**
  * The draft list: flagged SKUs only, plus a count of everything in range.
@@ -8,7 +10,13 @@ import { round } from "../lib/rules.ts";
  * so the list is the short one Raghav has to think about. Exceptions are not
  * here at all; they are in the queue, with no recommendation and no guess.
  */
-export function DraftList({ recommendations }: { recommendations: SavedRecommendation[] }) {
+export function DraftList({
+  recommendations,
+  decisions,
+}: {
+  recommendations: SavedRecommendation[];
+  decisions: Map<number, SavedDecision>;
+}) {
   const flagged = recommendations.filter((r) => !r.isException && r.flag !== "in-range");
   const inRange = recommendations.filter((r) => !r.isException && r.flag === "in-range");
   const exceptions = recommendations.filter((r) => r.isException);
@@ -37,6 +45,7 @@ export function DraftList({ recommendations }: { recommendations: SavedRecommend
               <th className="py-2 pr-3 font-medium">Flag</th>
               <th className="py-2 pr-3 font-medium">Recommended</th>
               <th className="py-2 pr-3 font-medium">Why</th>
+              <th className="py-2 pr-3 font-medium">Your decision</th>
             </tr>
           </thead>
           <tbody>
@@ -76,6 +85,16 @@ export function DraftList({ recommendations }: { recommendations: SavedRecommend
                 </td>
                 <td className="py-2 pr-3">
                   <Why r={r} />
+                </td>
+                <td className="py-2 pr-3">
+                  <ReviewControls
+                    recommendationId={r.id}
+                    skuId={r.skuId}
+                    recommendedQty={r.qty}
+                    isHold={r.flag === "overstock"}
+                    unitOfMeasure={r.unitOfMeasure}
+                    decision={decisions.get(r.id) ?? null}
+                  />
                 </td>
               </tr>
             ))}

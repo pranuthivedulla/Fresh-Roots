@@ -26,7 +26,9 @@ decision log behind it is [nine-checks.md](nine-checks.md).
 | Ingest gates | Built. 17 of 17 cases block or pass as specified |
 | Database schema | Built. Not yet run against a hosted Postgres |
 | Deployable skeleton | Built. Status page, health route, self-test route |
-| The five screens | **Not built** |
+| Sessions | Built. Two passcodes, server-side, signed cookie |
+| Run screen | Built: load, on-order, rules, review, export, send confirmation |
+| Exceptions, History, RCA, Settings | **Not built** |
 | Email, cron | **Not built**. Both default off |
 
 Run `npm run spike1` and `npm run spike2` to see the first two for yourself;
@@ -62,6 +64,23 @@ npm run typecheck
 npm run build
 npm run fixtures    # regenerates tests/fixtures/ from sample-data/
 ```
+
+### If `npm run dev` goes strange
+
+This folder lives inside OneDrive, which syncs `.next` and `node_modules`
+while the dev server is writing them. The symptom is buttons that silently do
+nothing: the page renders, but `main-app.js` and `app-pages-internals.js`
+come back 404, so React never hydrates and no click handler is attached.
+Hot reload makes it worse, because each rebuild rewrites files mid-sync.
+
+Three ways out, best first:
+
+1. Move the project out of OneDrive, for example `C:\dev\freshroots`.
+2. Exclude `.next` and `node_modules` from OneDrive sync.
+3. Test against a production build instead, which does not hot reload:
+   `npm run build && npm start`.
+
+`npm run build` has never been affected; it is only the dev server.
 
 ---
 

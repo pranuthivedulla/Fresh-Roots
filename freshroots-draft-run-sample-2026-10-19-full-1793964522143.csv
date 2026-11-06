@@ -1,0 +1,5 @@
+SKU_ID,SKU_Name,Distributor_ID,Quantity,Unit_of_Measure
+SKU001,Freshroots Mango Drink 200ml,DIST001,600,Units
+SKU013,Freshroots Peanut Butter 300g,DIST001,120,Units
+SKU004,Freshroots Almond Milk 500ml,DIST002,150,Units
+SKU011,Freshroots Multigrain Bread 400g,DIST004,500,Units

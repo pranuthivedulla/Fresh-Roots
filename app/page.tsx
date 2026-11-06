@@ -1,11 +1,13 @@
 import { redirect } from "next/navigation";
 
 import { currentSession } from "../lib/auth.ts";
+import { decisionsFor, exportRows, latestExport, rejectionCounts } from "../lib/decisions.ts";
 import { phaseFor } from "../lib/phase.ts";
 import { getSetting, listLoads, storedContext, type StoredLoad } from "../lib/repo.ts";
 import { latestRunForLoad, prefillOnOrder, recommendationsFor } from "../lib/runs.ts";
 import { daysBetween, formatCalendarDate, isoWeekLabelOf, parseCalendarDate, todayIST } from "../lib/time.ts";
 import { DraftList } from "./DraftList.tsx";
+import { ExportPanel } from "./ExportPanel.tsx";
 import { DropForm } from "./DropForm.tsx";
 import { OnOrderForm, type OnOrderRow } from "./OnOrderForm.tsx";
 
@@ -36,6 +38,10 @@ export default async function RunPage() {
 
   const run = newest ? await latestRunForLoad(newest.id).catch(() => null) : null;
   const recommendations = run ? await recommendationsFor(run.id).catch(() => []) : [];
+  const decisions = run ? await decisionsFor(run.id).catch(() => new Map()) : new Map();
+  const counts = run ? await rejectionCounts(run.id).catch(() => null) : null;
+  const readyRows = run ? (await exportRows(run.id).catch(() => [])).length : 0;
+  const exportRecord = run ? await latestExport(run.id).catch(() => null) : null;
 
   let onOrderRows: OnOrderRow[] = [];
   if (newest && !run) {
@@ -77,7 +83,19 @@ export default async function RunPage() {
             Rules applied {istStamp(run.runAt)} against the {formatCalendarDate(newest!.asOfDate)}{" "}
             snapshot, in {run.phase} phase.
           </p>
-          <DraftList recommendations={recommendations} />
+          <DraftList recommendations={recommendations} decisions={decisions} />
+          {counts && (
+            <ExportPanel
+              runId={run.id}
+              flaggedCount={counts.accepted + counts.changed + counts.rejected + counts.undecided}
+              undecided={counts.undecided}
+              readyRows={readyRows}
+              exportedAt={exportRecord ? istStamp(exportRecord.exportedAt) : null}
+              sentConfirmedAt={
+                exportRecord?.sentConfirmedAt ? istStamp(exportRecord.sentConfirmedAt) : null
+              }
+            />
+          )}
         </section>
       ) : onOrderRows.length > 0 ? (
         <section className="border-t border-neutral-200 pt-4">
@@ -136,9 +154,9 @@ export default async function RunPage() {
       </section>
 
       <p className="rounded border border-neutral-300 bg-white p-3 text-sm text-neutral-700">
-        <strong className="font-semibold">Not built yet:</strong> the per-SKU review (accept,
-        change with a reason, reject), the CSV export and the send confirmation. The draft list
-        above is produced but cannot yet be acted on.
+        <strong className="font-semibold">Not built yet:</strong> the Exceptions, History and
+        measures, Pause and RCA, and Settings screens. The run, review and export path works end
+        to end.
       </p>
     </main>
   );
