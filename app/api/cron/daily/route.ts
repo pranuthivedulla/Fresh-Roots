@@ -2,6 +2,9 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
 import { query } from "../../../../lib/db.ts";
+import { emailConfig, missedUploadBody, sendEmail } from "../../../../lib/email.ts";
+import { describeRunDays, isoWeekday, parseRunDays } from "../../../../lib/run-days.ts";
+import { getSetting } from "../../../../lib/repo.ts";
 import { shortError } from "../../../../lib/status.ts";
 import { daysBetween, formatCalendarDate, todayIST } from "../../../../lib/time.ts";
 
@@ -11,16 +14,16 @@ export const maxDuration = 30;
 
 /**
  * The daily job. Vercel calls it on the schedule in vercel.json and sends
- * `Authorization: Bearer $CRON_SECRET` automatically.
+ * `Authorization: Bearer $CRON_SECRET` itself.
  *
- * Today it does one thing: record that it ran, and how stale the newest
- * accepted load was at that moment. That is the substance of the
- * missed-upload check; the reminder itself (banner, and email when enabled)
- * is wired up when the Run screen exists and run days are a setting.
+ * It checks whether today is a run day with no upload, records what it found,
+ * and emails Raghav if email is on. The banner on the Run screen is the
+ * primary channel; email is the second copy, and the job records that it ran
+ * either way so "did it fire" never depends on whether a mail went.
  *
  * It never runs the rules, never creates a recommendation and never sends
- * anything to anyone. A scheduled job that could act on its own would be a
- * way around the human in the loop.
+ * anything to Zoho. A scheduled job that could act on its own would be a way
+ * around the human in the loop.
  */
 export async function GET(request: Request) {
   if (!authorised(request)) {
@@ -29,7 +32,7 @@ export async function GET(request: Request) {
   return run("missed-upload-check");
 }
 
-/** The same job, for running it by hand without waiting a day. */
+/** The same job by hand, so it can be proven without waiting a day. */
 export async function POST(request: Request) {
   if (!authorised(request)) {
     return NextResponse.json({ ok: false, error: "unauthorised" }, { status: 401 });
@@ -40,38 +43,67 @@ export async function POST(request: Request) {
 async function run(job: string) {
   const today = todayIST();
   try {
-    const [newest] = await query<{ id: string; as_of_date: Date }>(
-      "SELECT id, as_of_date FROM loads WHERE status = 'accepted' ORDER BY as_of_date DESC LIMIT 1",
+    const days = parseRunDays(await getSetting("run_days").catch(() => null));
+    const todayIso = isoWeekday(today);
+    const isRunDay = days.includes(todayIso);
+
+    const [newest] = await query<{ id: string; as_of_date: Date; uploaded_at: Date }>(
+      "SELECT id, as_of_date, uploaded_at FROM loads WHERE status = 'accepted' ORDER BY as_of_date DESC LIMIT 1",
     );
 
-    const detail = newest
+    const asOf = newest
       ? {
-          newestLoad: newest.id,
-          asOfDate: formatCalendarDate({
-            year: newest.as_of_date.getFullYear(),
-            month: newest.as_of_date.getMonth() + 1,
-            day: newest.as_of_date.getDate(),
-          }),
-          daysSinceAsOf: daysBetween(
-            {
-              year: newest.as_of_date.getFullYear(),
-              month: newest.as_of_date.getMonth() + 1,
-              day: newest.as_of_date.getDate(),
-            },
-            today,
-          ),
+          year: newest.as_of_date.getFullYear(),
+          month: newest.as_of_date.getMonth() + 1,
+          day: newest.as_of_date.getDate(),
         }
-      : { newestLoad: null, note: "no accepted load yet" };
+      : null;
+    const daysSinceAsOf = asOf ? daysBetween(asOf, today) : null;
+
+    // An upload counts for today only if it arrived today, IST.
+    const uploadedToday = newest
+      ? formatCalendarDate({
+          year: newest.uploaded_at.getFullYear(),
+          month: newest.uploaded_at.getMonth() + 1,
+          day: newest.uploaded_at.getDate(),
+        }) === formatCalendarDate(today)
+      : false;
+
+    const missed = isRunDay && !uploadedToday;
+
+    let email: { status: string; detail: string } | null = null;
+    if (missed) {
+      const c = emailConfig();
+      email = await sendEmail({
+        kind: "missed-upload",
+        to: c.raghav,
+        subject: `Freshroots: no upload yet on ${formatCalendarDate(today)}`,
+        body: missedUploadBody({
+          lastAsOf: asOf ? formatCalendarDate(asOf) : null,
+          daysOld: daysSinceAsOf,
+          dueDay: formatCalendarDate(today),
+        }),
+        config: c,
+      });
+    }
+
+    const detail = {
+      runDays: describeRunDays(days),
+      isRunDay,
+      uploadedToday,
+      missedUpload: missed,
+      newestLoad: newest?.id ?? null,
+      asOfDate: asOf ? formatCalendarDate(asOf) : null,
+      daysSinceAsOf,
+      email: email ? `${email.status}: ${email.detail}` : "not needed",
+    };
 
     const [row] = await query<{ id: string; ran_at: Date }>(
       "INSERT INTO cron_runs (job, detail, ok) VALUES ($1, $2::jsonb, true) RETURNING id, ran_at",
       [job, JSON.stringify(detail)],
     );
 
-    // One line in the runtime log as well, for the hour it is retained.
-    console.log(
-      `[cron] ${job} ran at ${row!.ran_at.toISOString()} (IST date ${formatCalendarDate(today)}) ${JSON.stringify(detail)}`,
-    );
+    console.log(`[cron] ${job} ${row!.ran_at.toISOString()} ${JSON.stringify(detail)}`);
 
     return NextResponse.json(
       { ok: true, job, ranAt: row!.ran_at, istDate: formatCalendarDate(today), detail },
@@ -80,7 +112,6 @@ async function run(job: string) {
   } catch (err) {
     const message = shortError(err);
     console.error(`[cron] ${job} failed: ${message}`);
-    // Record the failure too, if the database is reachable enough to take it.
     await query("INSERT INTO cron_runs (job, detail, ok) VALUES ($1, $2::jsonb, false)", [
       job,
       JSON.stringify({ error: message }),

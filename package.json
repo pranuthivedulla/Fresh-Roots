@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "migrate": "node --env-file=.env --experimental-strip-types scripts/migrate.ts",
     "spike3": "node --env-file=.env --experimental-strip-types scripts/spike3.ts",
-    "pause-test": "node --env-file=.env --experimental-strip-types scripts/pause-test.ts"
+    "pause-test": "node --env-file=.env --experimental-strip-types scripts/pause-test.ts",
+    "spike4": "node --env-file=.env --experimental-strip-types scripts/spike4.ts"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",

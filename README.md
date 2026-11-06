@@ -33,7 +33,7 @@ decision log behind it is [nine-checks.md](nine-checks.md).
 | Pause and RCA | Built: pause rules, harm events, outcome check, verdicts |
 | Settings | Built: thresholds, backup checker, go-live date, export columns |
 | Cron | Built: daily job at 08:30 IST, recorded in the database |
-| Email | **Not built**. `EMAIL_ENABLED` is false and the app works fully without it |
+| Email | Built, off by default. Needs a sending account; see below |
 
 Run `npm run spike1` and `npm run spike2` to see the first two for yourself;
 neither needs a database, a key or a network.
@@ -68,6 +68,7 @@ npm run typecheck
 npm run build
 npm run fixtures    # regenerates tests/fixtures/ from sample-data/
 npm run pause-test  # 11 pause scenarios; needs a database
+npm run spike4      # email config and the daily cap; add -- --send to send one
 ```
 
 ### If `npm run dev` goes strange
@@ -229,8 +230,40 @@ cannot run schema migrations:
 - `DATABASE_URL` — pooled, used by the running app
 - `DATABASE_URL_UNPOOLED` — direct, used by migrations only
 
-AI (`AI_ENABLED`) and email (`EMAIL_ENABLED`) both default off and the app works
-fully without either. AI, when on, writes one plain line explaining why a SKU was
+### Turning email on
+
+Off by default, and nothing about a run depends on it: with `EMAIL_ENABLED`
+false every reminder is an in-app banner and a mail provider being down
+cannot stop Raghav working.
+
+To switch it on you need a **dedicated throwaway sending account**, not a
+personal or company mailbox. The default provider is Resend; `EMAIL_ENDPOINT`
+overrides the URL if you use another with a compatible JSON body.
+
+1. Create the account and an API key.
+2. Set `EMAIL_API_KEY`, `EMAIL_FROM` (a verified sender), `RAGHAV_EMAIL`,
+   `DEEPA_EMAIL`, and `EMAIL_ENABLED=true`.
+3. `npm run spike4` to check the configuration and the cap, then
+   `npm run spike4 -- --send` to send one real message.
+
+Two emails exist and no others:
+
+- **Missed upload**, to Raghav, from the daily job, only on a run day when
+  nothing has been uploaded that day.
+- **Rejection alert**, to Deepa, when a review crosses the phase's alert line.
+  This fires before anything is paused, which is the point of an alert line.
+
+`MAX_EMAILS_PER_DAY` is a hard cap counted from the `email_log` table in IST,
+so a restart cannot reset it and two functions cannot both think they are
+under the limit. Every attempt is logged, including the ones that were capped
+or refused: an email that silently did not send is worse than one that
+visibly failed.
+
+**Run days** (Settings, Deepa only) decide when a missed upload is missed.
+Without them the app could only say the data is old, every morning, which is
+a notification people learn to ignore.
+
+AI (`AI_ENABLED`) defaults off and the app works fully without it. AI, when on, writes one plain line explaining why a SKU was
 queued as an exception. It never forecasts, never sets a quantity, never changes
 a flag and never decides a pause.
 

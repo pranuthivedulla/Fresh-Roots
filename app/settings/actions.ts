@@ -7,6 +7,7 @@ import { setSetting } from "../../lib/repo.ts";
 import { DEFAULT_THRESHOLDS, type Thresholds } from "../../lib/settings.ts";
 import { saveThresholds } from "../../lib/settings-store.ts";
 import { parseCalendarDate } from "../../lib/time.ts";
+import { describeRunDays, parseRunDays } from "../../lib/run-days.ts";
 
 export type SettingsResult = { ok: boolean; error: string | null; message: string | null };
 
@@ -131,4 +132,21 @@ export async function resetThresholds(): Promise<SettingsResult> {
   await saveThresholds(DEFAULT_THRESHOLDS, describeRole(session.role));
   revalidatePath("/");
   return OK("Thresholds are back to the locked rule sheet.");
+}
+
+/**
+ * Which weekdays an upload is expected. The missed-upload reminder means
+ * nothing without them: "your data is old" every morning is a notification
+ * people learn to ignore.
+ */
+export async function setRunDays(_previous: SettingsResult, formData: FormData): Promise<SettingsResult> {
+  const session = await requireRole("admin");
+  const chosen = formData.getAll("run_days").map((d) => String(d));
+  if (chosen.length === 0) {
+    return FAIL("Pick at least one run day, or the missed-upload reminder can never fire.");
+  }
+  const days = parseRunDays(chosen.join(","));
+  await setSetting("run_days", days.join(","), describeRole(session.role));
+  revalidatePath("/", "layout");
+  return OK(`Run days are now ${describeRunDays(days)}.`);
 }

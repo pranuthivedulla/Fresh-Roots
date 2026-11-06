@@ -3,10 +3,12 @@
 import { useActionState } from "react";
 
 import type { Thresholds } from "../../lib/settings.ts";
+import { dayName } from "../../lib/run-days.ts";
 import {
   setBackupChecker,
   setExportColumns,
   setGoLiveDate,
+  setRunDays,
   updateThresholds,
   type SettingsResult,
 } from "./actions.ts";
@@ -19,11 +21,13 @@ export function SettingsForms(props: {
   backupChecker: string;
   goLiveDate: string;
   exportColumns: string;
+  runDays: number[];
 }) {
   return (
     <div className="space-y-6">
       <BackupChecker value={props.backupChecker} />
       <GoLive value={props.goLiveDate} />
+      <RunDays value={props.runDays} />
       <ThresholdForm thresholds={props.thresholds} usingDefaults={props.usingDefaults} />
       <ExportColumns value={props.exportColumns} />
     </div>
@@ -95,6 +99,36 @@ function GoLive({ value }: { value: string }) {
       <div className="mt-2">
         <Feedback state={state} />
       </div>
+    </section>
+  );
+}
+
+function RunDays({ value }: { value: number[] }) {
+  const [state, action, pending] = useActionState(setRunDays, EMPTY);
+  return (
+    <section className="glass-strong p-3">
+      <h3 className="text-sm font-semibold">Run days</h3>
+      <p className="mb-2 text-sm text-slate-600">
+        The weekdays an upload is expected. The daily job only sends a missed-upload reminder on
+        these days; without them it could only say the data is old, every morning, which is a
+        notification people learn to ignore.
+      </p>
+      <form action={action} className="flex flex-wrap items-center gap-3">
+        {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+          <label key={d} className="flex items-center gap-1.5 text-sm">
+            <input type="checkbox" name="run_days" value={d} defaultChecked={value.includes(d)} />
+            {dayName(d)}
+          </label>
+        ))}
+        <button
+          type="submit"
+          disabled={pending}
+          className="rounded bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {pending ? "Saving…" : "Save"}
+        </button>
+      </form>
+      <Feedback state={state} />
     </section>
   );
 }

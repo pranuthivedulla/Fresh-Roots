@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { currentSession, NotAuthorised } from "../../lib/auth.ts";
 import { query } from "../../lib/db.ts";
 import { getSetting } from "../../lib/repo.ts";
+import { emailConfig, emailProblems, sentToday } from "../../lib/email.ts";
+import { parseRunDays } from "../../lib/run-days.ts";
 import { loadThresholds } from "../../lib/settings-store.ts";
 import { SettingsForms } from "./SettingsForms.tsx";
 
@@ -28,13 +30,17 @@ export default async function SettingsPage() {
     );
   }
 
-  const [{ thresholds, usingDefaults, problem }, backupChecker, goLiveDate, exportColumns] =
+  const [{ thresholds, usingDefaults, problem }, backupChecker, goLiveDate, exportColumns, runDaysRaw, emailsToday] =
     await Promise.all([
       loadThresholds(),
       getSetting("backup_checker").catch(() => null),
       getSetting("go_live_date").catch(() => null),
       getSetting("export_columns").catch(() => null),
+      getSetting("run_days").catch(() => null),
+      sentToday().catch(() => 0),
     ]);
+  const email = emailConfig();
+  const emailIssues = emailProblems(email);
 
   const history = (
     await query<{ key: string; old_value: string | null; new_value: string; changed_by: string; changed_at: Date }>(
@@ -72,7 +78,34 @@ export default async function SettingsPage() {
         backupChecker={backupChecker ?? ""}
         goLiveDate={goLiveDate ?? ""}
         exportColumns={exportColumns ?? "SKU_ID,SKU_Name,Distributor_ID,Quantity,Unit_of_Measure"}
+        runDays={parseRunDays(runDaysRaw)}
       />
+
+      <section className="glass-strong p-3">
+        <h3 className="text-sm font-semibold">Email</h3>
+        {emailIssues.length === 0 ? (
+          <p className="text-sm text-slate-700">
+            On. Sending as {email.from}, capped at {email.maxPerDay} a day; {emailsToday} sent today
+            (IST). Raghav gets the missed-upload reminder, Deepa gets the rejection alert.
+          </p>
+        ) : (
+          <>
+            <p className="text-sm text-slate-700">
+              Not sending. Reminders appear as in-app banners instead, and nothing about a run
+              depends on email.
+            </p>
+            <ul className="mt-1 list-disc pl-5 text-xs text-slate-600">
+              {emailIssues.map((i, n) => (
+                <li key={n}>{i}</li>
+              ))}
+            </ul>
+          </>
+        )}
+        <p className="mt-1 text-xs text-slate-500">
+          These are environment variables, not settings: a mail key does not belong in a database
+          anyone with the admin passcode can read.
+        </p>
+      </section>
 
       <section className="border-t border-[rgba(23,42,69,0.12)] pt-4">
         <h3 className="mb-2 text-sm font-semibold">Change log</h3>

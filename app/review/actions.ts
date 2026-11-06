@@ -15,6 +15,7 @@ import {
   type Action,
 } from "../../lib/decisions.ts";
 import { query } from "../../lib/db.ts";
+import { emailConfig, rejectionAlertBody, sendEmail } from "../../lib/email.ts";
 import { phaseFor } from "../../lib/phase.ts";
 import { checkRejectionPause } from "../../lib/pause.ts";
 import { getSetting } from "../../lib/repo.ts";
@@ -98,7 +99,24 @@ export async function exportForZoho(runId: string): Promise<{ filename: string; 
   // day late has already let another list go out.
   const goLive = await getSetting("go_live_date").catch(() => null);
   const rules = phaseFor(goLive ? parseCalendarDate(goLive) : null, todayIST());
-  await checkRejectionPause(rules.phase, rules.pauseAbove, rules.alertAbove).catch(() => null);
+  const check = await checkRejectionPause(rules.phase, rules.pauseAbove, rules.alertAbove).catch(() => null);
+
+  // Deepa is told when the rate crosses the alert line, which is the point
+  // of an alert line: it fires before anything is paused.
+  if (check?.alert && rules.alertAbove !== null) {
+    const c = emailConfig();
+    await sendEmail({
+      kind: "rejection-alert",
+      to: c.deepa,
+      subject: `Freshroots: rejections above ${(rules.alertAbove * 100).toFixed(0)}% in the last review`,
+      body: rejectionAlertBody({
+        rate: check.rates[0]?.rate ?? 0,
+        limit: rules.alertAbove,
+        phase: rules.phase,
+      }),
+      config: c,
+    }).catch(() => null);
+  }
 
   revalidatePath("/", "layout");
   return {
