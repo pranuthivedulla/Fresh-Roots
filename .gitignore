@@ -31,3 +31,6 @@ Thumbs.db
 .vercel
 .env.local
 !.env.example
+
+# exported draft lists are output, not source
+freshroots-draft-*.csv
