@@ -15,6 +15,10 @@ import {
   type Action,
 } from "../../lib/decisions.ts";
 import { query } from "../../lib/db.ts";
+import { phaseFor } from "../../lib/phase.ts";
+import { checkRejectionPause } from "../../lib/pause.ts";
+import { getSetting } from "../../lib/repo.ts";
+import { parseCalendarDate, todayIST } from "../../lib/time.ts";
 
 export type DecisionResult = { ok: boolean; error: string | null };
 
@@ -88,7 +92,15 @@ export async function exportForZoho(runId: string): Promise<{ filename: string; 
   await requireRole("reviewer");
   const rows = await exportRows(runId);
   await recordExport(runId, rows.length);
-  revalidatePath("/");
+
+  // The review is finished, so this is the moment the rejection rate for it
+  // is final. Checked here rather than on a schedule: a pause that arrives a
+  // day late has already let another list go out.
+  const goLive = await getSetting("go_live_date").catch(() => null);
+  const rules = phaseFor(goLive ? parseCalendarDate(goLive) : null, todayIST());
+  await checkRejectionPause(rules.phase, rules.pauseAbove, rules.alertAbove).catch(() => null);
+
+  revalidatePath("/", "layout");
   return {
     filename: `freshroots-draft-${runId}.csv`,
     csv: toCsv(rows),

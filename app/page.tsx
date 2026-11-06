@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { currentSession } from "../lib/auth.ts";
 import { decisionsFor, exportRows, latestExport, rejectionCounts } from "../lib/decisions.ts";
+import { currentPause } from "../lib/pause.ts";
 import { phaseFor } from "../lib/phase.ts";
 import { getSetting, listLoads, storedContext, type StoredLoad } from "../lib/repo.ts";
 import { latestRunForLoad, prefillOnOrder, recommendationsFor } from "../lib/runs.ts";
@@ -36,6 +37,7 @@ export default async function RunPage() {
   const goLive = await getSetting("go_live_date").catch(() => null);
   const phase = phaseFor(goLive ? parseCalendarDate(goLive) : null, newest?.judgedAsOf ?? today);
 
+  const pause = await currentPause().catch(() => null);
   const run = newest ? await latestRunForLoad(newest.id).catch(() => null) : null;
   const recommendations = run ? await recommendationsFor(run.id).catch(() => []) : [];
   const decisions = run ? await decisionsFor(run.id).catch(() => new Map()) : new Map();
@@ -77,7 +79,18 @@ export default async function RunPage() {
         <strong className="font-semibold">Phase:</strong> {phase.summary}
       </section>
 
-      {run ? (
+      {pause ? (
+        <section className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+          <h3 className="font-semibold">
+            {pause.verdict === null ? "Paused: manual process active" : `Stopped: ${pause.verdict}`}
+          </h3>
+          <p className="mt-1">{pause.trigger}</p>
+          <p className="mt-1 text-xs">
+            Recommendations are not shown while this stands. Forecast by hand as before. Deepa owns
+            the RCA, and no decision means it stays paused.
+          </p>
+        </section>
+      ) : run ? (
         <section className="space-y-4 border-t border-neutral-200 pt-4">
           <p className="text-sm text-neutral-600">
             Rules applied {istStamp(run.runAt)} against the {formatCalendarDate(newest!.asOfDate)}{" "}
