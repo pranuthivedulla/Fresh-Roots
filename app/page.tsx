@@ -45,6 +45,21 @@ export default async function Home() {
             )}
           </Row>
           <Row label="Go-live date">{status.goLiveDate ?? <Unset>not set, so no phase yet</Unset>}</Row>
+          <Row label="Daily job">
+            {status.lastCronRun ? (
+              <span>
+                last fired{" "}
+                {new Intl.DateTimeFormat("en-GB", {
+                  timeZone: status.timezone,
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(status.lastCronRun.ranAt)}{" "}
+                IST{status.lastCronRun.ok ? "" : " (it failed)"}
+              </span>
+            ) : (
+              <Unset>has not fired yet; scheduled 08:30 IST daily</Unset>
+            )}
+          </Row>
           <Row label="Today (IST)">
             {formatCalendarDate(today)} &middot; {isoWeekLabelOf(today)}
           </Row>

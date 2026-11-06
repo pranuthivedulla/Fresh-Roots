@@ -14,6 +14,8 @@ export type AppStatus = {
   /** Empty string means unassigned. The banner shows while it is empty. */
   backupChecker: string | null;
   goLiveDate: string | null;
+  /** The last time the daily job fired. Null means it never has. */
+  lastCronRun: { job: string; ranAt: Date; ok: boolean } | null;
   aiEnabled: boolean;
   emailEnabled: boolean;
   timezone: string;
@@ -23,6 +25,7 @@ export async function appStatus(): Promise<AppStatus> {
   const base = {
     backupChecker: null as string | null,
     goLiveDate: null as string | null,
+    lastCronRun: null as AppStatus["lastCronRun"],
     aiEnabled: (process.env.AI_ENABLED ?? "false").toLowerCase() === "true",
     emailEnabled: (process.env.EMAIL_ENABLED ?? "false").toLowerCase() === "true",
     timezone: process.env.APP_TIMEZONE ?? "Asia/Kolkata",
@@ -36,8 +39,12 @@ export async function appStatus(): Promise<AppStatus> {
       "SELECT key, value FROM settings WHERE key IN ('backup_checker', 'go_live_date')",
     );
     const byKey = new Map(settings.map((s) => [s.key, s.value]));
+    const [cron] = await query<{ job: string; ran_at: Date; ok: boolean }>(
+      "SELECT job, ran_at, ok FROM cron_runs ORDER BY ran_at DESC LIMIT 1",
+    );
     return {
       ...base,
+      lastCronRun: cron ? { job: cron.job, ranAt: cron.ran_at, ok: cron.ok } : null,
       database: {
         reachable: true,
         host: hostOf("pooled"),
