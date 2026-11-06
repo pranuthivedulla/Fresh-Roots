@@ -117,7 +117,9 @@ export default async function RunPage() {
       ) : null}
 
       <section className="border-t border-neutral-200 pt-4">
-        <h3 className="mb-1 text-sm font-semibold">Load a different drop</h3>
+        <h3 className="mb-1 text-sm font-semibold">
+          {newest ? "Load a different drop" : "Load a drop"}
+        </h3>
       </section>
 
       <DropForm />
