@@ -44,6 +44,23 @@ export function roleForPasscode(passcode: string): Role | null {
 }
 
 /** True when a passcode is configured at all. An unset passcode never matches. */
+/**
+ * Demo mode: a one-click way in, for someone who has to assess the app and
+ * was never given a passcode.
+ *
+ * It does NOT remove the passcode. The session, the two roles and every
+ * server-side check are unchanged; this only adds a second door that the
+ * deployment can open. Section 2 requires admin actions to be protected by a
+ * server-side passcode, and they still are — a demo visitor is given a real
+ * session by the server, not waved past a check.
+ *
+ * Off unless DEMO_MODE is explicitly "true", so a real deployment cannot
+ * acquire an open door by forgetting to set something.
+ */
+export function demoModeEnabled(): boolean {
+  return (process.env.DEMO_MODE ?? "").trim().toLowerCase() === "true";
+}
+
 export function passcodesConfigured(): { reviewer: boolean; admin: boolean } {
   return {
     reviewer: (process.env.REVIEWER_PASSCODE ?? "").trim() !== "",

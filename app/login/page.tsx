@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { currentSession, passcodesConfigured } from "../../lib/auth.ts";
+import { currentSession, demoModeEnabled, passcodesConfigured } from "../../lib/auth.ts";
+import { DemoSignIn } from "./DemoSignIn.tsx";
 import { LoginForm } from "./LoginForm.tsx";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ export default async function LoginPage() {
   if (await currentSession()) redirect("/");
   const configured = passcodesConfigured();
   const neither = !configured.reviewer && !configured.admin;
+  const demo = demoModeEnabled();
 
   return (
     <main className="mx-auto max-w-sm">
@@ -25,6 +27,20 @@ export default async function LoginPage() {
         </p>
       ) : (
         <LoginForm />
+      )}
+
+      {demo && (
+        <section className="glass glass-amber mt-6 p-3 text-sm text-amber-900">
+          <h3 className="font-semibold">Assessing this app?</h3>
+          <p className="mt-1">
+            Go in without a passcode. The passcode is not removed and nothing is unlocked: the
+            server issues a normal session, so both roles behave exactly as they do for Raghav and
+            Deepa. Deepa sees two screens Raghav does not.
+          </p>
+          <div className="mt-2">
+            <DemoSignIn />
+          </div>
+        </section>
       )}
     </main>
   );

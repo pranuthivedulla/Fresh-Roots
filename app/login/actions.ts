@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { endSession, roleForPasscode, startSession } from "../../lib/auth.ts";
+import { demoModeEnabled, endSession, roleForPasscode, startSession, type Role } from "../../lib/auth.ts";
 
 export type LoginState = { error: string | null };
 
@@ -20,4 +20,17 @@ export async function signIn(_previous: LoginState, formData: FormData): Promise
 export async function signOut(): Promise<void> {
   await endSession();
   redirect("/login");
+}
+
+/**
+ * Signs a visitor in without a passcode, only while DEMO_MODE is true.
+ * The role is still a real session issued by the server, so every screen and
+ * every action behaves exactly as it does for Raghav or Deepa.
+ */
+export async function signInForDemo(role: Role): Promise<void> {
+  if (!demoModeEnabled()) {
+    throw new Error("Demo mode is off on this deployment.");
+  }
+  await startSession(role);
+  redirect("/");
 }

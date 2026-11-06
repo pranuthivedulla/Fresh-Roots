@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { currentSession } from "../lib/auth.ts";
+import { currentSession, demoModeEnabled } from "../lib/auth.ts";
 import { appStatus } from "../lib/status.ts";
 import { Nav } from "./_components/Nav.tsx";
 import "./globals.css";
@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const status = await appStatus();
   const session = await currentSession();
+  const demo = demoModeEnabled();
   const backupCheckerMissing = !status.backupChecker || status.backupChecker.trim() === "";
 
   return (
@@ -21,6 +22,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-screen antialiased">
         {/* Section 7: this banner shows on every screen while the setting is
             empty. It never defaults to Raghav and it does not block go-live. */}
+        {demo && (
+          <div className="border-b border-sky-300 bg-sky-50/80 px-4 py-2 text-sm text-sky-900">
+            <strong className="font-semibold">Demo mode.</strong> Anyone can sign in without a
+            passcode on this deployment. Every other check is unchanged. Turn it off by removing
+            DEMO_MODE before this is used for real.
+          </div>
+        )}
         {backupCheckerMissing && (
           <div
             role="status"
