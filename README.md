@@ -28,8 +28,12 @@ decision log behind it is [nine-checks.md](nine-checks.md).
 | Deployable skeleton | Built. Status page, health route, self-test route |
 | Sessions | Built. Two passcodes, server-side, signed cookie |
 | Run screen | Built: load, on-order, rules, review, export, send confirmation |
-| Exceptions, History, RCA, Settings | **Not built** |
-| Email, cron | **Not built**. Both default off |
+| Exceptions | Built: queue with reasons, manual move in and out |
+| History and measures | Built: the eight measures, rule-fidelity backtest |
+| Pause and RCA | Built: pause rules, harm events, outcome check, verdicts |
+| Settings | Built: thresholds, backup checker, go-live date, export columns |
+| Cron | Built: daily job at 08:30 IST, recorded in the database |
+| Email | **Not built**. `EMAIL_ENABLED` is false and the app works fully without it |
 
 Run `npm run spike1` and `npm run spike2` to see the first two for yourself;
 neither needs a database, a key or a network.
@@ -63,6 +67,7 @@ npm run dev         # http://localhost:3000
 npm run typecheck
 npm run build
 npm run fixtures    # regenerates tests/fixtures/ from sample-data/
+npm run pause-test  # 11 pause scenarios; needs a database
 ```
 
 ### If `npm run dev` goes strange
