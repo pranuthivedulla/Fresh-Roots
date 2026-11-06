@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { currentSession } from "../lib/auth.ts";
 import { appStatus } from "../lib/status.ts";
+import { Nav } from "./_components/Nav.tsx";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,6 +13,7 @@ export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const status = await appStatus();
+  const session = await currentSession();
   const backupCheckerMissing = !status.backupChecker || status.backupChecker.trim() === "";
 
   return (
@@ -44,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               to Zoho or SAP.
             </p>
           </header>
+          {session && <Nav role={session.role} />}
           {children}
         </div>
       </body>

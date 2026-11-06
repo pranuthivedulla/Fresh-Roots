@@ -64,8 +64,15 @@ export type IngestInput = {
   names: FileNames;
   /** Today in IST for a real upload, or the snapshot's own date for the sample drop. */
   now: CalendarDate;
-  /** Raw on-order values exactly as typed, so a blank stays visibly blank. */
-  onOrder: Map<string, string>;
+  /**
+   * Raw on-order values exactly as typed, so a blank stays visibly blank.
+   *
+   * Omitted when a file is being accepted: Raghav enters on-order after the
+   * app knows which SKUs are in the drop, not before. The gate still exists
+   * and still blocks — it simply runs when the run is started, not when the
+   * file is read. See checkOnOrder.
+   */
+  onOrder?: Map<string, string>;
   stored?: StoredContext;
   previousLoads?: LoadRecord[];
   thresholds?: Thresholds;
@@ -193,38 +200,12 @@ export function ingest(input: IngestInput): IngestResult {
   }
 
   // ---- on-order: required per SKU, explicit zero, never inferred -------
-  const onOrder = new Map<string, number>();
-  for (const sku of dataset.skus) {
-    const raw = input.onOrder.get(sku.skuId);
-    if (raw === undefined || raw.trim() === "") {
-      blocks.push({
-        code: "ON_ORDER_BLANK",
-        column: "on_order",
-        message: `on-order is blank for ${sku.skuId} (${sku.name}). Enter 0 if nothing is open. A blank is not read as zero.`,
-      });
-      continue;
-    }
-    const value = nonNegativeInteger(raw);
-    if (value === null) {
-      blocks.push({
-        code: "ON_ORDER_INVALID",
-        column: "on_order",
-        message: `on-order for ${sku.skuId} is "${raw.trim()}", which is not a whole number of units at or above zero.`,
-      });
-      continue;
-    }
-    onOrder.set(sku.skuId, value);
-  }
-  const unknownSkus = [...input.onOrder.keys()].filter(
-    (id) => !dataset.skus.some((s) => s.skuId === id),
-  );
-  if (unknownSkus.length > 0) {
-    warnings.push({
-      code: "ON_ORDER_UNKNOWN_SKU",
-      column: "on_order",
-      message: `on-order was entered for ${unknownSkus.join(", ")}, which ${unknownSkus.length === 1 ? "is" : "are"} not in the SKU master. ${unknownSkus.length === 1 ? "It is" : "They are"} ignored.`,
-    });
-  }
+  const onOrderCheck = input.onOrder
+    ? checkOnOrder(dataset.skus, input.onOrder)
+    : { values: new Map<string, number>(), blocks: [], warnings: [] };
+  blocks.push(...onOrderCheck.blocks);
+  warnings.push(...onOrderCheck.warnings);
+  const onOrder = onOrderCheck.values;
 
   // ---- sales history must exist ----------------------------------------
   if (dataset.sales.length === 0) {
@@ -295,6 +276,54 @@ export function ingest(input: IngestInput): IngestResult {
   };
 
   return { ok: true, dataset, onOrder, load, warnings, isStockPositionCheck, dataAgeDays };
+}
+
+/**
+ * On-order is required for every SKU in the drop. A blank blocks the run and
+ * is never read as zero; Raghav types an explicit 0 where nothing is open.
+ *
+ * Separate from ingest() because it happens later in the flow: the file is
+ * accepted first, and only then does the app know which SKUs to ask about.
+ */
+export function checkOnOrder(
+  skus: Sku[],
+  raw: Map<string, string>,
+): { values: Map<string, number>; blocks: Notice[]; warnings: Notice[] } {
+  const values = new Map<string, number>();
+  const blocks: Notice[] = [];
+  const warnings: Notice[] = [];
+
+  for (const sku of skus) {
+    const given = raw.get(sku.skuId);
+    if (given === undefined || given.trim() === "") {
+      blocks.push({
+        code: "ON_ORDER_BLANK",
+        column: "on_order",
+        message: `on-order is blank for ${sku.skuId} (${sku.name}). Enter 0 if nothing is open. A blank is not read as zero.`,
+      });
+      continue;
+    }
+    const value = nonNegativeInteger(given);
+    if (value === null) {
+      blocks.push({
+        code: "ON_ORDER_INVALID",
+        column: "on_order",
+        message: `on-order for ${sku.skuId} is "${given.trim()}", which is not a whole number of units at or above zero.`,
+      });
+      continue;
+    }
+    values.set(sku.skuId, value);
+  }
+
+  const unknown = [...raw.keys()].filter((id) => !skus.some((s) => s.skuId === id));
+  if (unknown.length > 0) {
+    warnings.push({
+      code: "ON_ORDER_UNKNOWN_SKU",
+      column: "on_order",
+      message: `on-order was entered for ${unknown.join(", ")}, which ${unknown.length === 1 ? "is" : "are"} not in the SKU master. ${unknown.length === 1 ? "It is" : "They are"} ignored.`,
+    });
+  }
+  return { values, blocks, warnings };
 }
 
 function findWeekGaps(sales: WeeklySale[]): { skuId: string; missing: string[] }[] {

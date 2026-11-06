@@ -125,8 +125,8 @@ const cases: Case[] = [
     given: "SKU004 and SKU009 are left blank; everything else is 0",
     input: (() => {
       const input = base(sample);
-      input.onOrder.set("SKU004", "");
-      input.onOrder.set("SKU009", "   ");
+      input.onOrder!.set("SKU004", "");
+      input.onOrder!.set("SKU009", "   ");
       return input;
     })(),
     expectBlocks: ["ON_ORDER_BLANK"],
@@ -137,9 +137,9 @@ const cases: Case[] = [
     given: "SKU002 is -40, SKU005 is 12.5, SKU008 is 'none'",
     input: (() => {
       const input = base(sample);
-      input.onOrder.set("SKU002", "-40");
-      input.onOrder.set("SKU005", "12.5");
-      input.onOrder.set("SKU008", "none");
+      input.onOrder!.set("SKU002", "-40");
+      input.onOrder!.set("SKU005", "12.5");
+      input.onOrder!.set("SKU008", "none");
       return input;
     })(),
     expectBlocks: ["ON_ORDER_INVALID"],

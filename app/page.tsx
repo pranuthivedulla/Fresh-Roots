@@ -1,101 +1,149 @@
-import { appStatus } from "../lib/status.ts";
-import { todayIST, formatCalendarDate, isoWeekLabelOf } from "../lib/time.ts";
+import { redirect } from "next/navigation";
+
+import { currentSession } from "../lib/auth.ts";
+import { listLoads, type StoredLoad } from "../lib/repo.ts";
+import { daysBetween, formatCalendarDate, isoWeekLabelOf, todayIST } from "../lib/time.ts";
+import { DropForm } from "./DropForm.tsx";
 
 export const dynamic = "force-dynamic";
 
 /**
- * The deployment status page. It exists so that the first deploy proves
- * something: that the build works, that the environment variables arrived,
- * and that the database is reachable from a Vercel function.
+ * The Run screen. Step one of it: get a drop in, check it, archive it.
  *
- * It is replaced by the Run screen once the app is built.
+ * On-order entry, the rules and the review come next; until they exist this
+ * screen stops after the load, and says so rather than implying more happened.
  */
-export default async function Home() {
-  const status = await appStatus();
+export default async function RunPage() {
+  const session = await currentSession();
+  if (!session) redirect("/login");
+
+  let loads: StoredLoad[] = [];
+  let loadError: string | null = null;
+  try {
+    loads = await listLoads(10);
+  } catch (err) {
+    loadError = (err as Error).message.split("\n")[0]!;
+  }
+  const newest = loads.find((l) => l.status === "accepted") ?? null;
   const today = todayIST();
 
   return (
     <main className="space-y-6">
       <section>
-        <h2 className="mb-2 text-base font-semibold">Deployment status</h2>
-        <p className="mb-4 text-sm text-neutral-600">
-          The five screens are not built yet. This page checks that the deployment itself works.
+        <h2 className="text-base font-semibold">Run</h2>
+        <p className="text-sm text-neutral-600">
+          Today is {formatCalendarDate(today)} ({isoWeekLabelOf(today)}), IST.
         </p>
-        <dl className="divide-y divide-neutral-200 border-y border-neutral-200 text-sm">
-          <Row label="Database">
-            {status.database.reachable ? (
-              /* The host is deliberately not shown. This page is public and
-                 nobody reading it needs the database's address. */
-              <span>
-                <Ok /> reachable &middot; {status.database.tables} tables &middot;{" "}
-                {status.database.migrations} migration
-                {status.database.migrations === 1 ? "" : "s"} applied
-              </span>
-            ) : (
-              <span>
-                <Bad /> {status.database.error}
-              </span>
-            )}
-          </Row>
-          <Row label="Backup checker">
-            {status.backupChecker && status.backupChecker.trim() !== "" ? (
-              status.backupChecker
-            ) : (
-              <span className="text-amber-800">Unassigned</span>
-            )}
-          </Row>
-          <Row label="Go-live date">{status.goLiveDate ?? <Unset>not set, so no phase yet</Unset>}</Row>
-          <Row label="Daily job">
-            {status.lastCronRun ? (
-              <span>
-                last fired{" "}
-                {new Intl.DateTimeFormat("en-GB", {
-                  timeZone: status.timezone,
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(status.lastCronRun.ranAt)}{" "}
-                IST{status.lastCronRun.ok ? "" : " (it failed)"}
-              </span>
-            ) : (
-              <Unset>has not fired yet; scheduled 08:30 IST daily</Unset>
-            )}
-          </Row>
-          <Row label="Today (IST)">
-            {formatCalendarDate(today)} &middot; {isoWeekLabelOf(today)}
-          </Row>
-          <Row label="Time zone">{status.timezone}</Row>
-          <Row label="AI">
-            {status.aiEnabled ? "on, for exception reasons only" : "off; exception reasons come from plain code"}
-          </Row>
-          <Row label="Email">{status.emailEnabled ? "on" : "off; the missed-upload reminder is an in-app banner"}</Row>
-        </dl>
       </section>
 
-      <section className="rounded border border-neutral-200 bg-white p-4 text-sm">
-        <h3 className="mb-1 font-semibold">What this app does not do</h3>
-        <p className="text-neutral-700">
-          It never writes to Zoho or SAP, never places or approves an order, and never says
-          anything was ordered. It produces a draft list; a person reviews it and sends it.
+      {newest ? (
+        <DataAsOf load={newest} today={today} />
+      ) : (
+        <p className="rounded border border-neutral-300 bg-white p-3 text-sm text-neutral-700">
+          Nothing has been loaded yet. The app holds no sales history, so the first load must be a
+          full one.
         </p>
+      )}
+
+      <DropForm />
+
+      <section className="border-t border-neutral-200 pt-4">
+        <h3 className="mb-1 text-sm font-semibold">Archive</h3>
+        <p className="mb-3 text-sm text-neutral-600">
+          Every load is kept, including the ones that were refused, so a re-uploaded old export
+          cannot look fresh.
+        </p>
+        {loadError ? (
+          <p className="text-sm text-red-700">The archive could not be read: {loadError}</p>
+        ) : loads.length === 0 ? (
+          <p className="text-sm text-neutral-500">No loads yet.</p>
+        ) : (
+          <table className="w-full border-y border-neutral-200 text-left text-sm">
+            <thead className="text-neutral-600">
+              <tr>
+                <Th>Uploaded (IST)</Th>
+                <Th>Data as of</Th>
+                <Th>Type</Th>
+                <Th>Status</Th>
+                <Th>Files</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {loads.map((l) => (
+                <tr key={l.id} className="border-t border-neutral-100 align-top">
+                  <Td>{istStamp(l.uploadedAt)}</Td>
+                  <Td>{formatCalendarDate(l.asOfDate)}</Td>
+                  <Td>{l.type === "full" ? "full" : "stock only"}</Td>
+                  <Td>
+                    {l.status === "accepted" ? (
+                      <span className="text-emerald-700">accepted</span>
+                    ) : (
+                      <span className="text-red-700">
+                        blocked{l.blockedCodes.length > 0 ? `: ${l.blockedCodes.join(", ")}` : ""}
+                      </span>
+                    )}
+                  </Td>
+                  <Td className="text-neutral-600">{l.fileNames.join(", ")}</Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
+
+      <p className="rounded border border-neutral-300 bg-white p-3 text-sm text-neutral-700">
+        <strong className="font-semibold">Not built yet:</strong> on-order entry, the five rules
+        against this data, the review and the export. This screen currently stops once a load is
+        accepted and archived.
+      </p>
     </main>
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function DataAsOf({ load, today }: { load: StoredLoad; today: ReturnType<typeof todayIST> }) {
+  // Age is measured against the clock this load was judged by, so the banner
+  // cannot contradict the decision to accept it. For a real upload that is
+  // today; for a bundled demo drop it is the drop's own snapshot date.
+  const against = load.judgedAsOf ?? today;
+  const age = daysBetween(load.asOfDate, against);
+  const tone =
+    age > 7
+      ? "border-red-300 bg-red-50 text-red-900"
+      : age > 3
+        ? "border-amber-300 bg-amber-50 text-amber-900"
+        : "border-neutral-300 bg-white text-neutral-800";
   return (
-    <div className="grid grid-cols-[11rem_1fr] gap-4 py-2">
-      <dt className="text-neutral-600">{label}</dt>
-      <dd>{children}</dd>
-    </div>
+    <section className={`rounded border p-3 text-sm ${tone}`}>
+      <strong className="font-semibold">
+        Data as of {formatCalendarDate(load.asOfDate)} ({isoWeekLabelOf(load.asOfDate)})
+      </strong>{" "}
+      — {age === 0 ? "the day it was judged against" : `${age} day${age === 1 ? "" : "s"} old`}, read
+      from the stock file and never from the upload time.
+      {age > 7 && " Over the 7-day limit: a new run needs a fresh export."}
+      {age > 3 && age <= 7 && " Over 3 days, so the cover figures lag reality."}
+      {load.demo && (
+        <span className="mt-1 block text-neutral-600">
+          This is bundled demo data. It is judged as of its own snapshot date, because the sample
+          files cannot move. A real upload is always measured against today
+          {" "}({formatCalendarDate(today)}), under which this drop would be{" "}
+          {daysBetween(load.asOfDate, today)} days old and refused.
+        </span>
+      )}
+    </section>
   );
 }
-function Ok() {
-  return <span className="font-semibold text-emerald-700">OK</span>;
+
+function istStamp(d: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: process.env.APP_TIMEZONE ?? "Asia/Kolkata",
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(d);
 }
-function Bad() {
-  return <span className="font-semibold text-red-700">FAILED</span>;
+
+function Th({ children }: { children: React.ReactNode }) {
+  return <th className="py-2 pr-4 font-medium">{children}</th>;
 }
-function Unset({ children }: { children: React.ReactNode }) {
-  return <span className="text-neutral-500">{children}</span>;
+function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <td className={`py-2 pr-4 ${className}`}>{children}</td>;
 }
