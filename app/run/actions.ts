@@ -4,14 +4,20 @@ import { revalidatePath } from "next/cache";
 
 import { requireRole } from "../../lib/auth.ts";
 import type { SourceFiles } from "../../lib/dataset.ts";
-import { ingest, type IngestInput, type LoadType, type Notice } from "../../lib/ingest.ts";
+import { query } from "../../lib/db.ts";
+import { checkOnOrder, ingest, type IngestInput, type LoadType, type Notice } from "../../lib/ingest.ts";
+import { phaseFor } from "../../lib/phase.ts";
 import {
   acceptedLoadRecords,
   contentHash,
+  getSetting,
+  listLoads,
   recordBlockedLoad,
   saveAcceptedLoad,
   storedContext,
 } from "../../lib/repo.ts";
+import { runRules } from "../../lib/rules.ts";
+import { saveRun } from "../../lib/runs.ts";
 import { SAMPLE_FILE_NAMES, readSampleFiles, SAMPLE_DIR } from "../../lib/sample.ts";
 import { formatCalendarDate, parseCalendarDate, todayIST } from "../../lib/time.ts";
 
@@ -95,6 +101,91 @@ export async function uploadDrop(_previous: LoadOutcome, formData: FormData): Pr
   const type: LoadType = keys.length === 1 && keys[0] === "stock" ? "stock-only" : "full";
 
   return acceptDrop({ files, type, nowFromSnapshot: false, label: "upload" });
+}
+
+export type RunOutcome = { ok: boolean; blocks: Notice[]; summary: string | null };
+
+/**
+ * Starts a run against the newest accepted load.
+ *
+ * On-order is read from the form exactly as typed. A blank blocks the whole
+ * run and is never read as zero: that is the one place where a missing number
+ * would silently change every cover figure on the screen.
+ */
+export async function startRun(_previous: RunOutcome, formData: FormData): Promise<RunOutcome> {
+  const session = await requireRole("reviewer");
+
+  const loads = await listLoads(50);
+  const load = loads.find((l) => l.status === "accepted");
+  if (!load) {
+    return { ok: false, blocks: [{ code: "NO_LOAD", message: "There is no accepted load to run against." }], summary: null };
+  }
+
+  const stored = await storedContext();
+  if (!stored) {
+    return { ok: false, blocks: [{ code: "NO_CONTEXT", message: "Nothing is stored yet." }], summary: null };
+  }
+
+  const typed = new Map<string, string>();
+  const prefilled = new Set<string>();
+  for (const sku of stored.skus) {
+    typed.set(sku.skuId, String(formData.get(`on_order_${sku.skuId}`) ?? ""));
+    if (formData.get(`prefilled_${sku.skuId}`) === "1") prefilled.add(sku.skuId);
+  }
+
+  const checked = checkOnOrder(stored.skus, typed);
+  if (checked.blocks.length > 0) {
+    return { ok: false, blocks: checked.blocks.slice(0, 12), summary: null };
+  }
+
+  const goLive = await getSetting("go_live_date");
+  const runDate = load.judgedAsOf ?? todayIST();
+  const rules = phaseFor(goLive ? parseCalendarDate(goLive) : null, runDate);
+
+  const result = runRules({
+    dataset: {
+      skus: stored.skus,
+      suppliers: stored.suppliers,
+      sales: stored.sales,
+      calendar: stored.calendar,
+      stock: await stockForLoad(),
+      asOfDate: load.asOfDate,
+    },
+    onOrder: checked.values,
+    runDate,
+  });
+
+  const runId = `run-${load.id}-${Date.now()}`;
+  await saveRun({
+    runId,
+    loadId: load.id,
+    phase: rules.phase,
+    onOrder: checked.values,
+    prefilled,
+    confirmedBy: session.role,
+    evaluations: result.evaluations,
+  });
+
+  revalidatePath("/");
+  const c = result.counts;
+  return {
+    ok: true,
+    blocks: [],
+    summary: `${c.stockout} stockout, ${c.overstock} overstock, ${c.inRange} in range, ${c.exceptions} in the exception queue.`,
+  };
+}
+
+async function stockForLoad() {
+  const rows = await query<{ sku_id: string; location: string; units_on_hand: number; as_of_date: Date }>(
+    `SELECT DISTINCT ON (sku_id) sku_id, location, units_on_hand, as_of_date
+       FROM stock_snapshots ORDER BY sku_id, as_of_date DESC`,
+  );
+  return rows.map((r) => ({
+    skuId: r.sku_id,
+    location: r.location,
+    unitsOnHand: Number(r.units_on_hand),
+    asOfDate: { year: r.as_of_date.getFullYear(), month: r.as_of_date.getMonth() + 1, day: r.as_of_date.getDate() },
+  }));
 }
 
 // ---------------------------------------------------------------- internals

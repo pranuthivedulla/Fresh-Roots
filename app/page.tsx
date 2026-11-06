@@ -1,9 +1,13 @@
 import { redirect } from "next/navigation";
 
 import { currentSession } from "../lib/auth.ts";
-import { listLoads, type StoredLoad } from "../lib/repo.ts";
-import { daysBetween, formatCalendarDate, isoWeekLabelOf, todayIST } from "../lib/time.ts";
+import { phaseFor } from "../lib/phase.ts";
+import { getSetting, listLoads, storedContext, type StoredLoad } from "../lib/repo.ts";
+import { latestRunForLoad, prefillOnOrder, recommendationsFor } from "../lib/runs.ts";
+import { daysBetween, formatCalendarDate, isoWeekLabelOf, parseCalendarDate, todayIST } from "../lib/time.ts";
+import { DraftList } from "./DraftList.tsx";
 import { DropForm } from "./DropForm.tsx";
+import { OnOrderForm, type OnOrderRow } from "./OnOrderForm.tsx";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +31,24 @@ export default async function RunPage() {
   const newest = loads.find((l) => l.status === "accepted") ?? null;
   const today = todayIST();
 
+  const goLive = await getSetting("go_live_date").catch(() => null);
+  const phase = phaseFor(goLive ? parseCalendarDate(goLive) : null, newest?.judgedAsOf ?? today);
+
+  const run = newest ? await latestRunForLoad(newest.id).catch(() => null) : null;
+  const recommendations = run ? await recommendationsFor(run.id).catch(() => []) : [];
+
+  let onOrderRows: OnOrderRow[] = [];
+  if (newest && !run) {
+    const stored = await storedContext().catch(() => null);
+    const prefill = await prefillOnOrder().catch(() => new Map<string, number>());
+    onOrderRows = (stored?.skus ?? []).map((s) => ({
+      skuId: s.skuId,
+      skuName: s.name,
+      unitOfMeasure: s.unitOfMeasure,
+      prefill: prefill.get(s.skuId) ?? null,
+    }));
+  }
+
   return (
     <main className="space-y-6">
       <section>
@@ -44,6 +66,28 @@ export default async function RunPage() {
           full one.
         </p>
       )}
+
+      <section className="rounded border border-neutral-200 bg-white p-3 text-sm text-neutral-700">
+        <strong className="font-semibold">Phase:</strong> {phase.summary}
+      </section>
+
+      {run ? (
+        <section className="space-y-4 border-t border-neutral-200 pt-4">
+          <p className="text-sm text-neutral-600">
+            Rules applied {istStamp(run.runAt)} against the {formatCalendarDate(newest!.asOfDate)}{" "}
+            snapshot, in {run.phase} phase.
+          </p>
+          <DraftList recommendations={recommendations} />
+        </section>
+      ) : onOrderRows.length > 0 ? (
+        <section className="border-t border-neutral-200 pt-4">
+          <OnOrderForm rows={onOrderRows} />
+        </section>
+      ) : null}
+
+      <section className="border-t border-neutral-200 pt-4">
+        <h3 className="mb-1 text-sm font-semibold">Load a different drop</h3>
+      </section>
 
       <DropForm />
 
@@ -92,9 +136,9 @@ export default async function RunPage() {
       </section>
 
       <p className="rounded border border-neutral-300 bg-white p-3 text-sm text-neutral-700">
-        <strong className="font-semibold">Not built yet:</strong> on-order entry, the five rules
-        against this data, the review and the export. This screen currently stops once a load is
-        accepted and archived.
+        <strong className="font-semibold">Not built yet:</strong> the per-SKU review (accept,
+        change with a reason, reject), the CSV export and the send confirmation. The draft list
+        above is produced but cannot yet be acted on.
       </p>
     </main>
   );
