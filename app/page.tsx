@@ -24,9 +24,11 @@ export default async function Home() {
         <dl className="divide-y divide-neutral-200 border-y border-neutral-200 text-sm">
           <Row label="Database">
             {status.database.reachable ? (
+              /* The host is deliberately not shown. This page is public and
+                 nobody reading it needs the database's address. */
               <span>
-                <Ok /> reachable at {status.database.host ?? "unknown host"} &middot;{" "}
-                {status.database.tables} tables &middot; {status.database.migrations} migration
+                <Ok /> reachable &middot; {status.database.tables} tables &middot;{" "}
+                {status.database.migrations} migration
                 {status.database.migrations === 1 ? "" : "s"} applied
               </span>
             ) : (
