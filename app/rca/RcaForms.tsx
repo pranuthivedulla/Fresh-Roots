@@ -15,10 +15,10 @@ function Feedback({ state }: { state: RcaResult }) {
 export function VerdictForm({ pauseId }: { pauseId: number }) {
   const [state, action, pending] = useActionState(submitVerdict, EMPTY);
   return (
-    <form action={action} className="mt-3 space-y-2 rounded border border-red-200 bg-white p-3">
+    <form action={action} className="mt-3 space-y-2 glass-strong p-3">
       <input type="hidden" name="pause_id" value={pauseId} />
       <p className="text-sm font-medium text-neutral-900">Verdict</p>
-      <div className="space-y-1 text-sm text-neutral-800">
+      <div className="space-y-1 text-sm text-slate-800">
         {[
           ["fix-and-restart", "Fix and restart — the problem is understood and addressed; the app resumes"],
           ["redesign", "Redesign — the approach needs rework; the app stays stopped"],
@@ -30,13 +30,13 @@ export function VerdictForm({ pauseId }: { pauseId: number }) {
           </label>
         ))}
       </div>
-      <label className="block text-sm text-neutral-800">
+      <label className="block text-sm text-slate-800">
         <span className="mb-1 block">Written note (required): what you found, and why this decision</span>
         <textarea
           name="note"
           required
           rows={3}
-          className="w-full rounded border border-neutral-300 px-2 py-1 text-sm"
+          className="w-full rounded border border-slate-300 px-2 py-1 text-sm"
         />
       </label>
       <button
@@ -56,30 +56,30 @@ export function HarmEventForm() {
   return (
     <form action={action} className="flex flex-wrap items-end gap-2">
       <label className="text-sm">
-        <span className="mb-1 block text-neutral-600">SKU (optional)</span>
-        <input name="sku_id" className="w-32 rounded border border-neutral-300 px-2 py-1 text-sm" />
+        <span className="mb-1 block text-slate-600">SKU (optional)</span>
+        <input name="sku_id" className="w-32 rounded border border-slate-300 px-2 py-1 text-sm" />
       </label>
       <label className="text-sm">
-        <span className="mb-1 block text-neutral-600">Value (&#8377;)</span>
+        <span className="mb-1 block text-slate-600">Value (&#8377;)</span>
         <input
           name="value_inr"
           inputMode="decimal"
           required
-          className="w-32 rounded border border-neutral-300 px-2 py-1 text-sm"
+          className="w-32 rounded border border-slate-300 px-2 py-1 text-sm"
         />
       </label>
       <label className="text-sm">
-        <span className="mb-1 block text-neutral-600">What happened (required)</span>
+        <span className="mb-1 block text-slate-600">What happened (required)</span>
         <input
           name="note"
           required
-          className="w-80 rounded border border-neutral-300 px-2 py-1 text-sm"
+          className="w-80 rounded border border-slate-300 px-2 py-1 text-sm"
         />
       </label>
       <button
         type="submit"
         disabled={pending}
-        className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+        className="rounded border border-white/70 bg-white/70 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
       >
         {pending ? "Recording…" : "Record harm event"}
       </button>
@@ -106,7 +106,7 @@ export function PauseCheckButton() {
             setBusy(false);
           }
         }}
-        className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+        className="rounded border border-white/70 bg-white/70 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
       >
         {busy ? "Checking…" : "Check the pause rules now"}
       </button>

@@ -15,15 +15,15 @@ const SCREENS: { href: string; label: string; needs: Role }[] = [
 export function Nav({ role }: { role: Role }) {
   const visible = SCREENS.filter((s) => s.needs === "reviewer" || role === "admin");
   return (
-    <nav className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-neutral-200 pb-3 text-sm">
+    <nav className="glass mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 text-sm">
       {visible.map((s) => (
-        <Link key={s.href} href={s.href} className="text-neutral-700 underline-offset-2 hover:underline">
+        <Link key={s.href} href={s.href} className="text-slate-700 underline-offset-2 hover:underline">
           {s.label}
         </Link>
       ))}
-      <span className="ml-auto text-neutral-500">{describeRole(role)}</span>
+      <span className="ml-auto text-slate-500">{describeRole(role)}</span>
       <form action={signOut}>
-        <button type="submit" className="text-neutral-700 underline underline-offset-2">
+        <button type="submit" className="text-slate-700 underline underline-offset-2">
           Sign out
         </button>
       </form>

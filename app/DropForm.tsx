@@ -40,7 +40,7 @@ export function DropForm() {
     <div className="space-y-5">
       <section>
         <h3 className="mb-1 text-sm font-semibold">Upload the SAP export</h3>
-        <p className="mb-2 text-sm text-neutral-600">
+        <p className="mb-2 text-sm text-slate-600">
           Drop one or more CSV files. The app works out which is which from the column headings, so
           the file names do not matter. A stock file on its own is a stock-position check and reuses
           the sales history already stored.
@@ -59,7 +59,7 @@ export function DropForm() {
             multiple
             accept=".csv,text/csv"
             required
-            className="text-sm file:mr-3 file:rounded file:border file:border-neutral-300 file:bg-white file:px-3 file:py-1.5 file:text-sm"
+            className="text-sm file:mr-3 file:rounded file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm"
           />
           <button
             type="submit"
@@ -71,9 +71,9 @@ export function DropForm() {
         </form>
       </section>
 
-      <section className="border-t border-neutral-200 pt-4">
+      <section className="border-t border-[rgba(23,42,69,0.12)] pt-4">
         <h3 className="mb-1 text-sm font-semibold">Or load bundled data</h3>
-        <p className="mb-2 text-sm text-neutral-600">
+        <p className="mb-2 text-sm text-slate-600">
           There is no folder to watch on a hosted server, so these stand in for an SAP drop. Both run
           as of their own snapshot date, 19 Oct 2026.
         </p>
@@ -82,7 +82,7 @@ export function DropForm() {
             type="button"
             onClick={() => run("sample")}
             disabled={busy !== null || uploading}
-            className="rounded border border-neutral-300 bg-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+            className="rounded border border-white/70 bg-white/70 px-4 py-2 text-sm font-medium disabled:opacity-50"
           >
             {busy === "sample" ? "Loading…" : "Load sample SAP drop"}
           </button>
@@ -90,7 +90,7 @@ export function DropForm() {
             type="button"
             onClick={() => run("edge")}
             disabled={busy !== null || uploading}
-            className="rounded border border-neutral-300 bg-white px-4 py-2 text-sm font-medium disabled:opacity-50"
+            className="rounded border border-white/70 bg-white/70 px-4 py-2 text-sm font-medium disabled:opacity-50"
           >
             {busy === "edge" ? "Loading…" : "Load edge-case drop (test fixture)"}
           </button>
@@ -104,13 +104,13 @@ export function DropForm() {
 
 function Outcome({ outcome }: { outcome: LoadOutcome }) {
   return (
-    <section className="space-y-3 border-t border-neutral-200 pt-4">
+    <section className="space-y-3 border-t border-[rgba(23,42,69,0.12)] pt-4">
       {outcome.ok ? (
-        <p className="rounded border border-emerald-300 bg-emerald-50 p-3 text-sm text-emerald-900">
+        <p className="glass glass-green p-3 text-sm text-emerald-900">
           <strong className="font-semibold">Load accepted.</strong> {outcome.summary}
         </p>
       ) : (
-        <div className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+        <div className="glass glass-red p-3 text-sm text-red-900">
           <strong className="font-semibold">
             The run is blocked. Nothing was changed, adjusted or guessed.
           </strong>
@@ -128,7 +128,7 @@ function Outcome({ outcome }: { outcome: LoadOutcome }) {
       )}
 
       {outcome.warnings.length > 0 && (
-        <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="glass glass-amber p-3 text-sm text-amber-900">
           <strong className="font-semibold">Worth knowing</strong>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {outcome.warnings.map((w, i) => (

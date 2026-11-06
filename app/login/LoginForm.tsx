@@ -21,7 +21,7 @@ export function LoginForm() {
           autoComplete="current-password"
           required
           autoFocus
-          className="w-full rounded border border-neutral-300 px-3 py-2 text-sm"
+          className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
         />
       </div>
       {state.error && (

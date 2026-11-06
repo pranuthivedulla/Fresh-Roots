@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
-/* Plain and readable on a laptop. No decoration.
-   Flag colours are the only colour that carries meaning. */
+/* Glassmorphism, applied with one rule: nothing translucent sits behind a
+   number anyone has to read. Panels and chrome are frosted; table surfaces
+   and flag colours stay solid and high-contrast, because a cover figure or a
+   stockout flag misread is a real cost, not a style preference. */
+
 @theme {
   --color-stockout: #b42318;
   --color-overstock: #b54708;
@@ -9,7 +12,128 @@
   --color-attention: #b54708;
 }
 
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-shadow: 0 8px 32px rgba(23, 42, 69, 0.10);
+  --glass-blur: 16px;
+}
+
 body {
-  background: #fbfbfa;
-  color: #1a1a1a;
+  color: #15223b;
+  background-color: #e8eef7;
+  background-image:
+    radial-gradient(42rem 42rem at 8% -6%, rgba(99, 161, 255, 0.34), transparent 62%),
+    radial-gradient(38rem 38rem at 96% 2%, rgba(118, 221, 196, 0.30), transparent 60%),
+    radial-gradient(44rem 44rem at 48% 108%, rgba(167, 139, 250, 0.26), transparent 62%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* A frosted panel. Used for cards, banners and the page shell. */
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 0.875rem;
+}
+
+/* Where text density is high: tables, forms, anything with figures in it.
+   Nearly opaque, so contrast does not depend on what is behind it. */
+.glass-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--glass-shadow);
+  border-radius: 0.875rem;
+}
+
+/* Banners keep their meaning colour and only borrow the frosting. */
+.glass-amber {
+  background: rgba(254, 243, 199, 0.78);
+  border: 1px solid rgba(217, 160, 44, 0.45);
+}
+.glass-red {
+  background: rgba(254, 226, 226, 0.82);
+  border: 1px solid rgba(197, 60, 60, 0.45);
+}
+.glass-green {
+  background: rgba(209, 250, 229, 0.80);
+  border: 1px solid rgba(16, 140, 100, 0.40);
+}
+
+/* A table gets its own near-opaque panel. Without one the rows sit straight
+   on the gradient and a cover figure is read against whatever colour happens
+   to be behind it, which is the whole failure mode of this style. */
+.glass-table {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--glass-shadow);
+  border-radius: 0.875rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+.glass-table th:first-child,
+.glass-table td:first-child {
+  padding-left: 0.875rem;
+}
+.glass-table th:last-child,
+.glass-table td:last-child {
+  padding-right: 0.875rem;
+}
+.glass-table thead th {
+  color: #43506b;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.45);
+  border-bottom: 1px solid rgba(23, 42, 69, 0.12);
+}
+.glass-table tbody tr {
+  border-top: 1px solid rgba(23, 42, 69, 0.10);
+}
+.glass-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* Inputs need to look recessed against a frosted surface, not floating. */
+input,
+select,
+textarea {
+  background: rgba(255, 255, 255, 0.85);
+}
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #3b6fd4;
+  outline-offset: 2px;
+}
+
+/* Backdrop filters are expensive and some browsers do not have them. Without
+   support the panels become near-solid rather than transparent, which is the
+   safe direction: readable first. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.97);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-strong {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.97);
+  }
 }

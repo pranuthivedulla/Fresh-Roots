@@ -39,7 +39,7 @@ export default async function HistoryPage() {
     <main className="space-y-6">
       <section>
         <h2 className="text-base font-semibold">History and measures</h2>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-slate-600">
           Everything here is counted from what the app recorded as it happened. A measure with no
           data says so rather than showing a zero that looks like a finding.
         </p>
@@ -47,20 +47,20 @@ export default async function HistoryPage() {
 
       <section>
         <h3 className="mb-2 text-sm font-semibold">The measures</h3>
-        <dl className="divide-y divide-neutral-200 border-y border-neutral-200 text-sm">
+        <dl className="glass-table divide-y divide-[rgba(23,42,69,0.10)] text-sm">
           {measures.map((m) => (
             <div key={m.name} className="grid gap-1 py-3 sm:grid-cols-[14rem_1fr]">
               <dt className="font-medium">{m.name}</dt>
               <dd>
                 {m.value === null ? (
-                  <span className="text-neutral-500">Not yet &mdash; {m.basis}</span>
+                  <span className="text-slate-500">Not yet &mdash; {m.basis}</span>
                 ) : (
                   <>
                     <span className="font-medium">{m.value}</span>{" "}
-                    <span className="text-neutral-500">({m.basis})</span>
+                    <span className="text-slate-500">({m.basis})</span>
                   </>
                 )}
-                <p className="mt-0.5 text-xs text-neutral-600">{m.note}</p>
+                <p className="mt-0.5 text-xs text-slate-600">{m.note}</p>
               </dd>
             </div>
           ))}
@@ -78,7 +78,7 @@ export default async function HistoryPage() {
           <h3 className="text-sm font-semibold">Rule fidelity (backtest)</h3>
           <p>
             {fidelity.value === null ? (
-              <span className="text-neutral-500">Not yet &mdash; {fidelity.basis}</span>
+              <span className="text-slate-500">Not yet &mdash; {fidelity.basis}</span>
             ) : (
               <>
                 <strong className="font-semibold">{fidelity.value}</strong> &mdash; {fidelity.basis}
@@ -96,13 +96,13 @@ export default async function HistoryPage() {
         </section>
       )}
 
-      <section className="border-t border-neutral-200 pt-4">
+      <section className="border-t border-[rgba(23,42,69,0.12)] pt-4">
         <h3 className="mb-2 text-sm font-semibold">Every load</h3>
         {loads.length === 0 ? (
-          <p className="text-sm text-neutral-500">Nothing loaded yet.</p>
+          <p className="text-sm text-slate-500">Nothing loaded yet.</p>
         ) : (
-          <table className="w-full border-y border-neutral-200 text-left text-sm">
-            <thead className="text-neutral-600">
+          <table className="glass-table w-full text-left text-sm">
+            <thead className="text-slate-600">
               <tr>
                 <th className="py-2 pr-3 font-medium">Uploaded (IST)</th>
                 <th className="py-2 pr-3 font-medium">Data as of</th>
@@ -112,11 +112,11 @@ export default async function HistoryPage() {
             </thead>
             <tbody>
               {loads.map((l) => (
-                <tr key={l.id} className="border-t border-neutral-100">
+                <tr key={l.id} className="border-t border-[rgba(23,42,69,0.08)]">
                   <td className="py-2 pr-3">{istStamp(l.uploadedAt)}</td>
                   <td className="py-2 pr-3">
                     {formatCalendarDate(l.asOfDate)}
-                    {l.demo && <span className="ml-2 text-xs text-neutral-500">demo</span>}
+                    {l.demo && <span className="ml-2 text-xs text-slate-500">demo</span>}
                   </td>
                   <td className="py-2 pr-3">{l.type === "full" ? "full" : "stock only"}</td>
                   <td className="py-2 pr-3">

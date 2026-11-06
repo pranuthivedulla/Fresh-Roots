@@ -15,7 +15,7 @@ export function ReturnToList({ recommendationId }: { recommendationId: number })
       <button
         type="submit"
         disabled={pending}
-        className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium disabled:opacity-50"
+        className="rounded border border-white/70 bg-white/70 px-2.5 py-1 text-xs font-medium disabled:opacity-50"
       >
         {pending ? "Putting back…" : "Put back on the list"}
       </button>
@@ -30,12 +30,12 @@ export function MoveToQueue({ candidates }: { candidates: { id: number; label: s
   return (
     <form action={action} className="flex flex-wrap items-end gap-2">
       <label className="text-sm">
-        <span className="mb-1 block text-neutral-600">SKU</span>
+        <span className="mb-1 block text-slate-600">SKU</span>
         <select
           name="recommendation_id"
           required
           defaultValue=""
-          className="rounded border border-neutral-300 px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
         >
           <option value="" disabled>
             Choose a SKU
@@ -48,18 +48,18 @@ export function MoveToQueue({ candidates }: { candidates: { id: number; label: s
         </select>
       </label>
       <label className="text-sm">
-        <span className="mb-1 block text-neutral-600">Why (required)</span>
+        <span className="mb-1 block text-slate-600">Why (required)</span>
         <input
           name="note"
           required
           placeholder="What the rules cannot see"
-          className="w-72 rounded border border-neutral-300 px-2 py-1 text-sm"
+          className="w-72 rounded border border-slate-300 px-2 py-1 text-sm"
         />
       </label>
       <button
         type="submit"
         disabled={pending}
-        className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+        className="rounded border border-white/70 bg-white/70 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
       >
         {pending ? "Moving…" : "Move to the queue"}
       </button>

@@ -25,19 +25,19 @@ export function DraftList({
     <section className="space-y-4">
       <div>
         <h3 className="text-sm font-semibold">Draft list</h3>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-slate-600">
           {flagged.length} flagged for a decision, {inRange.length} in range with no action,{" "}
           {exceptions.length} in the exception queue. Nothing here has been ordered.
         </p>
       </div>
 
       {flagged.length === 0 ? (
-        <p className="rounded border border-neutral-300 bg-white p-3 text-sm">
+        <p className="glass p-3 text-sm">
           Nothing is flagged. Every SKU with enough history is inside its cover limits.
         </p>
       ) : (
-        <table className="w-full border-y border-neutral-200 text-left text-sm">
-          <thead className="text-neutral-600">
+        <table className="glass-table w-full text-left text-sm">
+          <thead className="text-slate-600">
             <tr>
               <th className="py-2 pr-3 font-medium">SKU</th>
               <th className="py-2 pr-3 font-medium">Name</th>
@@ -50,12 +50,12 @@ export function DraftList({
           </thead>
           <tbody>
             {flagged.map((r) => (
-              <tr key={r.skuId} className="border-t border-neutral-100 align-top">
+              <tr key={r.skuId} className="border-t border-[rgba(23,42,69,0.08)] align-top">
                 <td className="py-2 pr-3 font-mono text-xs">{r.skuId}</td>
                 <td className="py-2 pr-3">
                   {r.skuName}
                   {r.perishability === "High" && (
-                    <span className="ml-2 rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-neutral-700">
+                    <span className="ml-2 rounded bg-neutral-100 px-1.5 py-0.5 text-xs text-slate-700">
                       perishable
                     </span>
                   )}
@@ -103,13 +103,13 @@ export function DraftList({
       )}
 
       {inRange.length > 0 && (
-        <details className="rounded border border-neutral-200 bg-white p-3 text-sm">
+        <details className="glass-strong p-3 text-sm">
           <summary className="cursor-pointer font-medium">
             No action: {inRange.length} SKUs inside their cover limits
           </summary>
           <ul className="mt-2 grid gap-1 sm:grid-cols-2">
             {inRange.map((r) => (
-              <li key={r.skuId} className="text-neutral-700">
+              <li key={r.skuId} className="text-slate-700">
                 <span className="font-mono text-xs">{r.skuId}</span> {r.skuName} —{" "}
                 {r.cover === null ? "—" : `${round(r.cover, 1).toFixed(1)} wks`}
               </li>
@@ -125,8 +125,8 @@ export function DraftList({
 function Why({ r }: { r: SavedRecommendation }) {
   return (
     <details>
-      <summary className="cursor-pointer text-neutral-700 underline underline-offset-2">why</summary>
-      <div className="mt-2 max-w-xl space-y-1 rounded border border-neutral-200 bg-neutral-50 p-2 text-xs">
+      <summary className="cursor-pointer text-slate-700 underline underline-offset-2">why</summary>
+      <div className="mt-2 max-w-xl space-y-1 glass-strong p-2 text-xs">
         <p>
           {r.unitsOnHand ?? "unknown"} on hand + {r.onOrder} on order
           {r.avg12 !== null && (
@@ -138,21 +138,21 @@ function Why({ r }: { r: SavedRecommendation }) {
             </>
           )}
         </p>
-        <p className="text-neutral-600">
+        <p className="text-slate-600">
           12-week average {r.avg12 === null ? "—" : round(r.avg12, 2)}, last 4 weeks{" "}
           {r.avg4 === null ? "—" : round(r.avg4, 2)}
           {r.avg12 !== null && r.avg4 !== null && r.avg12 > 0 && (
             <> ({round(((r.avg4 - r.avg12) / r.avg12) * 100, 1)}% difference)</>
           )}
         </p>
-        <ul className="list-disc space-y-0.5 pl-4 text-neutral-700">
+        <ul className="list-disc space-y-0.5 pl-4 text-slate-700">
           {r.rulesFired.map((f, i) => (
             <li key={i}>
               <span className="font-mono">{f.rule}</span>: {f.detail}
             </li>
           ))}
         </ul>
-        <p className="text-neutral-600">
+        <p className="text-slate-600">
           Standard reorder quantity {r.standardReorderQty} {r.unitOfMeasure.toLowerCase()},
           distributor {r.distributorId}.
         </p>

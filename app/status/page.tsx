@@ -18,10 +18,10 @@ export default async function Home() {
     <main className="space-y-6">
       <section>
         <h2 className="mb-2 text-base font-semibold">Deployment status</h2>
-        <p className="mb-4 text-sm text-neutral-600">
+        <p className="mb-4 text-sm text-slate-600">
           The five screens are not built yet. This page checks that the deployment itself works.
         </p>
-        <dl className="divide-y divide-neutral-200 border-y border-neutral-200 text-sm">
+        <dl className="glass-table divide-y divide-[rgba(23,42,69,0.10)] text-sm">
           <Row label="Database">
             {status.database.reachable ? (
               /* The host is deliberately not shown. This page is public and
@@ -71,9 +71,9 @@ export default async function Home() {
         </dl>
       </section>
 
-      <section className="rounded border border-neutral-200 bg-white p-4 text-sm">
+      <section className="glass-strong p-4 text-sm">
         <h3 className="mb-1 font-semibold">What this app does not do</h3>
-        <p className="text-neutral-700">
+        <p className="text-slate-700">
           It never writes to Zoho or SAP, never places or approves an order, and never says
           anything was ordered. It produces a draft list; a person reviews it and sends it.
         </p>
@@ -85,7 +85,7 @@ export default async function Home() {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[11rem_1fr] gap-4 py-2">
-      <dt className="text-neutral-600">{label}</dt>
+      <dt className="text-slate-600">{label}</dt>
       <dd>{children}</dd>
     </div>
   );
@@ -97,5 +97,5 @@ function Bad() {
   return <span className="font-semibold text-red-700">FAILED</span>;
 }
 function Unset({ children }: { children: React.ReactNode }) {
-  return <span className="text-neutral-500">{children}</span>;
+  return <span className="text-slate-500">{children}</span>;
 }

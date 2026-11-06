@@ -39,9 +39,9 @@ function Feedback({ state }: { state: SettingsResult }) {
 function BackupChecker({ value }: { value: string }) {
   const [state, action, pending] = useActionState(setBackupChecker, EMPTY);
   return (
-    <section className="rounded border border-neutral-200 bg-white p-3">
+    <section className="glass-strong p-3">
       <h3 className="text-sm font-semibold">Backup checker</h3>
-      <p className="mb-2 text-sm text-neutral-600">
+      <p className="mb-2 text-sm text-slate-600">
         Who reviews a pause if Deepa is unavailable. Empty shows &ldquo;Unassigned&rdquo; and puts a
         banner on every screen. It never defaults to Raghav, and it does not block go-live.
       </p>
@@ -50,7 +50,7 @@ function BackupChecker({ value }: { value: string }) {
           name="name"
           defaultValue={value}
           placeholder="Nobody named"
-          className="w-64 rounded border border-neutral-300 px-2 py-1 text-sm"
+          className="w-64 rounded border border-slate-300 px-2 py-1 text-sm"
         />
         <button
           type="submit"
@@ -70,9 +70,9 @@ function BackupChecker({ value }: { value: string }) {
 function GoLive({ value }: { value: string }) {
   const [state, action, pending] = useActionState(setGoLiveDate, EMPTY);
   return (
-    <section className="rounded border border-neutral-200 bg-white p-3">
+    <section className="glass-strong p-3">
       <h3 className="text-sm font-semibold">Go-live date</h3>
-      <p className="mb-2 text-sm text-neutral-600">
+      <p className="mb-2 text-sm text-slate-600">
         Weeks 1&ndash;3 are shadow (never pauses on rejections), 4&ndash;8 tuning (pauses above 75%
         in two consecutive reviews, alerts above 50%), 9 onwards steady (pauses above 25%). A harm
         event over &#8377;2L pauses in any phase.
@@ -82,7 +82,7 @@ function GoLive({ value }: { value: string }) {
           name="go_live_date"
           type="date"
           defaultValue={value}
-          className="rounded border border-neutral-300 px-2 py-1 text-sm"
+          className="rounded border border-slate-300 px-2 py-1 text-sm"
         />
         <button
           type="submit"
@@ -103,9 +103,9 @@ function ThresholdForm({ thresholds, usingDefaults }: { thresholds: Thresholds; 
   const [state, action, pending] = useActionState(updateThresholds, EMPTY);
   const t = thresholds;
   return (
-    <section className="rounded border border-neutral-200 bg-white p-3">
+    <section className="glass-strong p-3">
       <h3 className="text-sm font-semibold">Thresholds</h3>
-      <p className="mb-3 text-sm text-neutral-600">
+      <p className="mb-3 text-sm text-slate-600">
         {usingDefaults
           ? "Currently the locked rule sheet, unchanged since the build."
           : "Changed from the locked rule sheet. The change log below says by whom."}{" "}
@@ -153,9 +153,9 @@ function ThresholdForm({ thresholds, usingDefaults }: { thresholds: Thresholds; 
 function ExportColumns({ value }: { value: string }) {
   const [state, action, pending] = useActionState(setExportColumns, EMPTY);
   return (
-    <section className="rounded border border-neutral-200 bg-white p-3">
+    <section className="glass-strong p-3">
       <h3 className="text-sm font-semibold">Zoho export columns</h3>
-      <p className="mb-2 text-sm text-neutral-600">
+      <p className="mb-2 text-sm text-slate-600">
         The order of columns in the CSV. Available: SKU_ID, SKU_Name, Distributor_ID, Quantity,
         Unit_of_Measure.
       </p>
@@ -163,7 +163,7 @@ function ExportColumns({ value }: { value: string }) {
         <input
           name="columns"
           defaultValue={value}
-          className="w-full max-w-xl rounded border border-neutral-300 px-2 py-1 font-mono text-xs"
+          className="w-full max-w-xl rounded border border-slate-300 px-2 py-1 font-mono text-xs"
         />
         <button
           type="submit"
@@ -183,7 +183,7 @@ function ExportColumns({ value }: { value: string }) {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <fieldset>
-      <legend className="mb-1 text-xs font-medium text-neutral-600">{title}</legend>
+      <legend className="mb-1 text-xs font-medium text-slate-600">{title}</legend>
       <div className="flex flex-wrap gap-3">{children}</div>
     </fieldset>
   );
@@ -202,13 +202,13 @@ function Field({
 }) {
   return (
     <label className="text-sm">
-      <span className="mb-1 block text-neutral-600">{label}</span>
+      <span className="mb-1 block text-slate-600">{label}</span>
       <input
         name={name}
         type="number"
         step={step}
         defaultValue={value}
-        className="w-28 rounded border border-neutral-300 px-2 py-1 text-sm"
+        className="w-28 rounded border border-slate-300 px-2 py-1 text-sm"
       />
     </label>
   );

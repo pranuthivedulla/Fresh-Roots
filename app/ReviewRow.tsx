@@ -46,11 +46,11 @@ export function ReviewControls(props: ReviewRowProps) {
               ? `changed to ${decision.finalQty}`
               : "rejected"}
         </span>
-        {decision.reasonCode && <span className="text-neutral-600"> — {decision.reasonCode}</span>}
+        {decision.reasonCode && <span className="text-slate-600"> — {decision.reasonCode}</span>}
         <button
           type="button"
           onClick={() => setMode("change")}
-          className="ml-2 underline underline-offset-2 text-neutral-600"
+          className="ml-2 underline underline-offset-2 text-slate-600"
         >
           change this
         </button>
@@ -83,7 +83,7 @@ export function ReviewControls(props: ReviewRowProps) {
             <button
               type="button"
               onClick={() => setMode("change")}
-              className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium"
+              className="rounded border border-white/70 bg-white/70 px-2.5 py-1 text-xs font-medium"
             >
               Change
             </button>
@@ -91,7 +91,7 @@ export function ReviewControls(props: ReviewRowProps) {
           <button
             type="button"
             onClick={() => setMode("reject")}
-            className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs font-medium"
+            className="rounded border border-white/70 bg-white/70 px-2.5 py-1 text-xs font-medium"
           >
             Reject
           </button>
@@ -99,7 +99,7 @@ export function ReviewControls(props: ReviewRowProps) {
       )}
 
       {mode !== "none" && (
-        <form action={action} className="space-y-2 rounded border border-neutral-200 bg-neutral-50 p-2">
+        <form action={action} className="space-y-2 glass-strong p-2">
           <input type="hidden" name="recommendation_id" value={props.recommendationId} />
           <input type="hidden" name="action" value={mode} />
 
@@ -111,7 +111,7 @@ export function ReviewControls(props: ReviewRowProps) {
                 defaultValue={props.recommendedQty ?? 0}
                 inputMode="numeric"
                 required
-                className="ml-2 w-24 rounded border border-neutral-300 px-2 py-1 text-xs"
+                className="ml-2 w-24 rounded border border-slate-300 px-2 py-1 text-xs"
               />
             </label>
           )}
@@ -122,7 +122,7 @@ export function ReviewControls(props: ReviewRowProps) {
               name="reason_code"
               required
               defaultValue=""
-              className="ml-2 rounded border border-neutral-300 px-2 py-1 text-xs"
+              className="ml-2 rounded border border-slate-300 px-2 py-1 text-xs"
             >
               <option value="" disabled>
                 Choose one
@@ -139,7 +139,7 @@ export function ReviewControls(props: ReviewRowProps) {
             Note (optional)
             <input
               name="reason_text"
-              className="ml-2 w-64 rounded border border-neutral-300 px-2 py-1 text-xs"
+              className="ml-2 w-64 rounded border border-slate-300 px-2 py-1 text-xs"
             />
           </label>
 
@@ -154,7 +154,7 @@ export function ReviewControls(props: ReviewRowProps) {
             <button
               type="button"
               onClick={() => setMode("none")}
-              className="rounded border border-neutral-300 bg-white px-2.5 py-1 text-xs"
+              className="rounded border border-white/70 bg-white/70 px-2.5 py-1 text-xs"
             >
               Cancel
             </button>

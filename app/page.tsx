@@ -61,7 +61,7 @@ export default async function RunPage() {
     <main className="space-y-6">
       <section>
         <h2 className="text-base font-semibold">Run</h2>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-slate-600">
           Today is {formatCalendarDate(today)} ({isoWeekLabelOf(today)}), IST.
         </p>
       </section>
@@ -69,18 +69,18 @@ export default async function RunPage() {
       {newest ? (
         <DataAsOf load={newest} today={today} />
       ) : (
-        <p className="rounded border border-neutral-300 bg-white p-3 text-sm text-neutral-700">
+        <p className="glass p-3 text-sm text-slate-700">
           Nothing has been loaded yet. The app holds no sales history, so the first load must be a
           full one.
         </p>
       )}
 
-      <section className="rounded border border-neutral-200 bg-white p-3 text-sm text-neutral-700">
+      <section className="glass-strong p-3 text-sm text-slate-700">
         <strong className="font-semibold">Phase:</strong> {phase.summary}
       </section>
 
       {pause ? (
-        <section className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+        <section className="glass glass-red p-3 text-sm text-red-900">
           <h3 className="font-semibold">
             {pause.verdict === null ? "Paused: manual process active" : `Stopped: ${pause.verdict}`}
           </h3>
@@ -91,8 +91,8 @@ export default async function RunPage() {
           </p>
         </section>
       ) : run ? (
-        <section className="space-y-4 border-t border-neutral-200 pt-4">
-          <p className="text-sm text-neutral-600">
+        <section className="space-y-4 border-t border-[rgba(23,42,69,0.12)] pt-4">
+          <p className="text-sm text-slate-600">
             Rules applied {istStamp(run.runAt)} against the {formatCalendarDate(newest!.asOfDate)}{" "}
             snapshot, in {run.phase} phase.
           </p>
@@ -111,12 +111,12 @@ export default async function RunPage() {
           )}
         </section>
       ) : onOrderRows.length > 0 ? (
-        <section className="border-t border-neutral-200 pt-4">
+        <section className="border-t border-[rgba(23,42,69,0.12)] pt-4">
           <OnOrderForm rows={onOrderRows} />
         </section>
       ) : null}
 
-      <section className="border-t border-neutral-200 pt-4">
+      <section className="border-t border-[rgba(23,42,69,0.12)] pt-4">
         <h3 className="mb-1 text-sm font-semibold">
           {newest ? "Load a different drop" : "Load a drop"}
         </h3>
@@ -124,19 +124,19 @@ export default async function RunPage() {
 
       <DropForm />
 
-      <section className="border-t border-neutral-200 pt-4">
+      <section className="border-t border-[rgba(23,42,69,0.12)] pt-4">
         <h3 className="mb-1 text-sm font-semibold">Archive</h3>
-        <p className="mb-3 text-sm text-neutral-600">
+        <p className="mb-3 text-sm text-slate-600">
           Every load is kept, including the ones that were refused, so a re-uploaded old export
           cannot look fresh.
         </p>
         {loadError ? (
           <p className="text-sm text-red-700">The archive could not be read: {loadError}</p>
         ) : loads.length === 0 ? (
-          <p className="text-sm text-neutral-500">No loads yet.</p>
+          <p className="text-sm text-slate-500">No loads yet.</p>
         ) : (
-          <table className="w-full border-y border-neutral-200 text-left text-sm">
-            <thead className="text-neutral-600">
+          <table className="glass-table w-full text-left text-sm">
+            <thead className="text-slate-600">
               <tr>
                 <Th>Uploaded (IST)</Th>
                 <Th>Data as of</Th>
@@ -147,7 +147,7 @@ export default async function RunPage() {
             </thead>
             <tbody>
               {loads.map((l) => (
-                <tr key={l.id} className="border-t border-neutral-100 align-top">
+                <tr key={l.id} className="border-t border-[rgba(23,42,69,0.08)] align-top">
                   <Td>{istStamp(l.uploadedAt)}</Td>
                   <Td>{formatCalendarDate(l.asOfDate)}</Td>
                   <Td>{l.type === "full" ? "full" : "stock only"}</Td>
@@ -160,7 +160,7 @@ export default async function RunPage() {
                       </span>
                     )}
                   </Td>
-                  <Td className="text-neutral-600">{l.fileNames.join(", ")}</Td>
+                  <Td className="text-slate-600">{l.fileNames.join(", ")}</Td>
                 </tr>
               ))}
             </tbody>
@@ -168,7 +168,7 @@ export default async function RunPage() {
         )}
       </section>
 
-      <p className="rounded border border-neutral-300 bg-white p-3 text-sm text-neutral-700">
+      <p className="glass p-3 text-sm text-slate-700">
         <strong className="font-semibold">Not built yet:</strong> the Exceptions, History and
         measures, Pause and RCA, and Settings screens. The run, review and export path works end
         to end.
@@ -188,7 +188,7 @@ function DataAsOf({ load, today }: { load: StoredLoad; today: ReturnType<typeof 
       ? "border-red-300 bg-red-50 text-red-900"
       : age > 3
         ? "border-amber-300 bg-amber-50 text-amber-900"
-        : "border-neutral-300 bg-white text-neutral-800";
+        : "border-slate-300 bg-white text-slate-800";
   return (
     <section className={`rounded border p-3 text-sm ${tone}`}>
       <strong className="font-semibold">
@@ -199,7 +199,7 @@ function DataAsOf({ load, today }: { load: StoredLoad; today: ReturnType<typeof 
       {age > 7 && " Over the 7-day limit: a new run needs a fresh export."}
       {age > 3 && age <= 7 && " Over 3 days, so the cover figures lag reality."}
       {load.demo && (
-        <span className="mt-1 block text-neutral-600">
+        <span className="mt-1 block text-slate-600">
           This is bundled demo data. It is judged as of its own snapshot date, because the sample
           files cannot move. A real upload is always measured against today
           {" "}({formatCalendarDate(today)}), under which this drop would be{" "}

@@ -22,7 +22,7 @@ export function OnOrderForm({ rows }: { rows: OnOrderRow[] }) {
     <form action={action} className="space-y-3">
       <div>
         <h3 className="text-sm font-semibold">On-order stock</h3>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-slate-600">
           Stock already ordered but not yet received. There is no purchase-order feed, so this is
           typed. Enter <strong>0</strong> where nothing is open — a blank blocks the run and is
           never read as zero.{" "}
@@ -33,7 +33,7 @@ export function OnOrderForm({ rows }: { rows: OnOrderRow[] }) {
       </div>
 
       {state.blocks.length > 0 && (
-        <div role="alert" className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+        <div role="alert" className="glass glass-red p-3 text-sm text-red-900">
           <strong className="font-semibold">The run is blocked.</strong>
           <ul className="mt-2 list-disc space-y-1 pl-5">
             {state.blocks.map((b, i) => (
@@ -43,8 +43,8 @@ export function OnOrderForm({ rows }: { rows: OnOrderRow[] }) {
         </div>
       )}
 
-      <table className="w-full border-y border-neutral-200 text-left text-sm">
-        <thead className="text-neutral-600">
+      <table className="glass-table w-full text-left text-sm">
+        <thead className="text-slate-600">
           <tr>
             <th className="py-2 pr-4 font-medium">SKU</th>
             <th className="py-2 pr-4 font-medium">Name</th>
@@ -53,7 +53,7 @@ export function OnOrderForm({ rows }: { rows: OnOrderRow[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.skuId} className="border-t border-neutral-100">
+            <tr key={r.skuId} className="border-t border-[rgba(23,42,69,0.08)]">
               <td className="py-1.5 pr-4 font-mono text-xs">{r.skuId}</td>
               <td className="py-1.5 pr-4">{r.skuName}</td>
               <td className="py-1.5 pr-4">
@@ -63,15 +63,15 @@ export function OnOrderForm({ rows }: { rows: OnOrderRow[] }) {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   aria-label={`On-order units for ${r.skuId}`}
-                  className="w-24 rounded border border-neutral-300 px-2 py-1 text-sm"
+                  className="w-24 rounded border border-slate-300 px-2 py-1 text-sm"
                 />
                 {r.prefill !== null && (
                   <>
                     <input type="hidden" name={`prefilled_${r.skuId}`} value="1" />
-                    <span className="ml-2 text-xs text-neutral-500">pre-filled</span>
+                    <span className="ml-2 text-xs text-slate-500">pre-filled</span>
                   </>
                 )}
-                <span className="ml-2 text-xs text-neutral-500">{r.unitOfMeasure.toLowerCase()}</span>
+                <span className="ml-2 text-xs text-slate-500">{r.unitOfMeasure.toLowerCase()}</span>
               </td>
             </tr>
           ))}
@@ -85,7 +85,7 @@ export function OnOrderForm({ rows }: { rows: OnOrderRow[] }) {
       >
         {pending ? "Applying the rules…" : "Apply the rules"}
       </button>
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-slate-500">
         This produces a draft list for you to review. It does not order anything.
       </p>
     </form>

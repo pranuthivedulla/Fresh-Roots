@@ -76,10 +76,10 @@ export function ExportPanel(props: ExportPanelProps) {
       : "not exported yet";
 
   return (
-    <section className="space-y-3 rounded border border-neutral-200 bg-white p-3">
+    <section className="space-y-3 glass-strong p-3">
       <div>
         <h3 className="text-sm font-semibold">Review and export</h3>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-slate-600">
           {props.undecided} of {props.flaggedCount} flagged still undecided. Status:{" "}
           <strong className="font-medium">{status}</strong>.
         </p>
@@ -90,7 +90,7 @@ export function ExportPanel(props: ExportPanelProps) {
           type="button"
           onClick={onAcceptAll}
           disabled={busy !== null || props.undecided === 0}
-          className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+          className="rounded border border-white/70 bg-white/70 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         >
           {busy === "accept-all" ? "Accepting…" : `Accept all flagged (${props.undecided})`}
         </button>
@@ -106,15 +106,15 @@ export function ExportPanel(props: ExportPanelProps) {
           type="button"
           onClick={onConfirm}
           disabled={busy !== null || !props.exportedAt || props.sentConfirmedAt !== null}
-          className="rounded border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+          className="rounded border border-white/70 bg-white/70 px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         >
           {busy === "confirm" ? "Recording…" : "I have sent this to Zoho"}
         </button>
       </div>
 
-      {note && <p className="text-sm text-neutral-700">{note}</p>}
+      {note && <p className="text-sm text-slate-700">{note}</p>}
 
-      <p className="text-xs text-neutral-500">
+      <p className="text-xs text-slate-500">
         The app never writes to Zoho. Exporting builds a file; you send it. Nothing here is an
         order, and nothing is described as ordered.
       </p>
