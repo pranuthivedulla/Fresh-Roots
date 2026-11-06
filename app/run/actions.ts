@@ -17,6 +17,7 @@ import {
   storedContext,
 } from "../../lib/repo.ts";
 import { runRules } from "../../lib/rules.ts";
+import { loadThresholds } from "../../lib/settings-store.ts";
 import { saveRun } from "../../lib/runs.ts";
 import { SAMPLE_FILE_NAMES, readSampleFiles, SAMPLE_DIR } from "../../lib/sample.ts";
 import { formatCalendarDate, parseCalendarDate, todayIST } from "../../lib/time.ts";
@@ -142,7 +143,9 @@ export async function startRun(_previous: RunOutcome, formData: FormData): Promi
   const runDate = load.judgedAsOf ?? todayIST();
   const rules = phaseFor(goLive ? parseCalendarDate(goLive) : null, runDate);
 
+  const { thresholds } = await loadThresholds();
   const result = runRules({
+    thresholds,
     dataset: {
       skus: stored.skus,
       suppliers: stored.suppliers,
